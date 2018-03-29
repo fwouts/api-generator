@@ -23,7 +23,7 @@ typename
     ;
 
 struct
-    : '{' (structfield ';')+ '}'
+    : '{' (structfield ';')* '}'
     ;
 
 structfield
