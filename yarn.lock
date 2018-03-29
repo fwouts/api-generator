@@ -1701,6 +1701,10 @@ term-size@^1.2.0:
   dependencies:
     execa "^0.7.0"
 
+textbuilder@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/textbuilder/-/textbuilder-1.0.3.tgz#ae1ac58f7870fbc15cb5f1dfb060f963a3bdc8b7"
+
 through@2, through@~2.3, through@~2.3.1:
   version "2.3.8"
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
