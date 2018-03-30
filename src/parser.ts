@@ -16,7 +16,49 @@ export function parse(code: string): Api {
   const lexer = new ApiDefLexer(inputStream);
   const tokenStream = new CommonTokenStream(lexer);
   const parser = new ApiDefParser(tokenStream);
+  let error: {
+    line: number;
+    charPositionInLine: number;
+    message: string;
+  } | null = null;
+  lexer.removeErrorListeners();
+  lexer.addErrorListener({
+    syntaxError: (
+      recognizer,
+      offendingSymbol,
+      line,
+      charPositionInLine,
+      message,
+      e,
+    ) => {
+      if (!error) {
+        error = { line, charPositionInLine, message };
+      }
+    },
+  });
+  parser.removeErrorListeners();
+  parser.addErrorListener({
+    syntaxError: (
+      recognizer,
+      offendingSymbol,
+      line,
+      charPositionInLine,
+      message,
+      e,
+    ) => {
+      if (!error) {
+        error = { line, charPositionInLine, message };
+      }
+    },
+  });
   const result = parser.api();
+  if (error) {
+    throw new Error(
+      `Syntax error (${error!.line}:${error!.charPositionInLine}): ${
+        error!.message
+      }.`,
+    );
+  }
   return {
     typeDefs: result.typedef().map(read_typedef),
   };
