@@ -1,7 +1,7 @@
 import "jest";
-import { DEFAULT_TYPESCRIPT_MATCHER, generateTypeScript } from "./generator";
-import { parse } from "./parser";
-import { resolve } from "./resolver";
+import { parse } from "../parser";
+import { resolve } from "../resolver";
+import { DEFAULT_TYPESCRIPT_MATCHER, generateTypeScript } from "./typescript";
 
 // IMPORTANT NOTE: Jest gets stuck indefinitely when a string containing "import ... from"
 // appears in our code. That's why we hack around it by using `${"from"}` instead of "from".

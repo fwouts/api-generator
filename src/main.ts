@@ -1,4 +1,7 @@
-import { DEFAULT_TYPESCRIPT_MATCHER, generateTypeScript } from "./generator";
+import {
+  DEFAULT_TYPESCRIPT_MATCHER,
+  generateTypeScript,
+} from "./generators/typescript";
 import { parse } from "./parser";
 import { resolve } from "./resolver";
 
