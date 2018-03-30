@@ -6,8 +6,7 @@
     "dev": "nodemon",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "tslint --project tsconfig.json",
-    "precommit": "yarn test && lint-staged",
+    "lint": "tslint --project tsconfig.json --fix",
     "generate-grammar": "antlr4ts -no-listener src/grammar/ApiDef.g4"
   },
   "jest": {
@@ -30,7 +29,7 @@
   "devDependencies": {
     "@types/jest": "^22.2.2",
     "antlr4ts-cli": "^0.4.0-alpha.4",
-    "husky": "^0.14.3",
+    "husky": "^0.15.0-rc.13",
     "jest": "^22.4.3",
     "lint-staged": "^7.0.0",
     "nodemon": "^1.17.2",
@@ -42,6 +41,11 @@
   "dependencies": {
     "antlr4ts": "0.4.0-alpha.4",
     "textbuilder": "^1.0.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn test && lint-staged"
+    }
   },
   "lint-staged": {
     "*.ts": [
