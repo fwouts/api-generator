@@ -1,6 +1,6 @@
 import TextBuilder from "textbuilder";
-import { Type } from "./defs";
-import { DefinedTypes, KnownTypes } from "./resolver";
+import { Type } from "../defs";
+import { DefinedTypes, KnownTypes } from "../resolver";
 
 export type TypeScriptMatcher = (
   typeName: string,

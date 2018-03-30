@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "author": "Francois Wouts <f@zenc.io>",
   "scripts": {
+    "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "tslint --project tsconfig.json --fix",
@@ -41,7 +42,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn test && lint-staged"
+      "pre-commit": "yarn build && yarn test && lint-staged"
     }
   },
   "lint-staged": {
