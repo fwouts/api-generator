@@ -26,6 +26,10 @@ export function resolve(api: Api, knownTypes: KnownTypes): ResolveResult {
       recordedErrors.push(`Cannot redefine known type ${typeDef.name}.`);
       continue;
     }
+    if (typeDef.name in definedTypes) {
+      recordedErrors.push(`Type ${typeDef.name} is defined multiple times.`);
+      continue;
+    }
     definedTypes[typeDef.name] = typeDef.type;
   }
   for (const [name, type] of Object.entries(definedTypes)) {

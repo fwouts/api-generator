@@ -42,6 +42,7 @@ export function generateTypeScript(
 ) {
   const imports: string[] = [];
   const t = new TextBuilder();
+  let firstType = true;
   for (const knownType of knownTypes) {
     const match = matcher(knownType);
     if (match === null) {
@@ -49,6 +50,7 @@ export function generateTypeScript(
     } else if (typeof match === "string") {
       if (match !== knownType) {
         t.append(`export type ${knownType} = ${match};\n`);
+        firstType = false;
       }
     } else {
       if (match.what === "default") {
@@ -57,14 +59,19 @@ export function generateTypeScript(
         imports.push(`import { ${match.what} } from "${match.path}";`);
         if (match.what !== knownType) {
           t.append(`export type ${knownType} = ${match.what};\n`);
+          firstType = false;
         }
       }
     }
   }
   for (const [name, type] of Object.entries(definedTypes)) {
+    if (!firstType) {
+      t.append("\n");
+    }
     appendType(type, name);
+    firstType = false;
   }
-  return imports.join("\n") + t.build();
+  return imports.join("\n") + (imports.length > 0 ? "\n\n" : "") + t.build();
 
   function appendType(type: Type, exported?: string) {
     if (typeof type === "string") {
