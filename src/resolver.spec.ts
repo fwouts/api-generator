@@ -22,7 +22,7 @@ type a = string;
 type a = string;
 `);
 
-test("resolver", () => {
+test("resolver works", () => {
   expect(resolve(VALID)).toEqual({
     kind: "success",
     definedTypes: {
@@ -34,10 +34,16 @@ test("resolver", () => {
       c: "string",
     },
   });
+});
+
+test("resolver fails with unknown type reference", () => {
   expect(resolve(UNKNOWN_TYPE)).toEqual({
     kind: "failure",
     errors: ["Type a refers to unknown type b."],
   });
+});
+
+test("resolver fails with multiple references", () => {
   expect(resolve(DEFINED_TWICE)).toEqual({
     kind: "failure",
     errors: ["Type a is defined multiple times."],
