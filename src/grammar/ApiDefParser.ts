@@ -25,8 +25,7 @@ export class ApiDefParser extends Parser {
   public static readonly T__5 = 6;
   public static readonly T__6 = 7;
   public static readonly NAME = 8;
-  public static readonly STRING = 9;
-  public static readonly WS = 10;
+  public static readonly WS = 9;
   public static readonly RULE_api = 0;
   public static readonly RULE_typedef = 1;
   public static readonly RULE_union = 2;
@@ -34,6 +33,7 @@ export class ApiDefParser extends Parser {
   public static readonly RULE_typename = 4;
   public static readonly RULE_struct = 5;
   public static readonly RULE_structfield = 6;
+  public static readonly RULE_fieldname = 7;
   public static readonly ruleNames: string[] = [
     "api",
     "typedef",
@@ -42,6 +42,7 @@ export class ApiDefParser extends Parser {
     "typename",
     "struct",
     "structfield",
+    "fieldname",
   ];
 
   private static readonly _LITERAL_NAMES: (string | undefined)[] = [
@@ -64,7 +65,6 @@ export class ApiDefParser extends Parser {
     undefined,
     undefined,
     "NAME",
-    "STRING",
     "WS",
   ];
   public static readonly VOCABULARY: Vocabulary = new VocabularyImpl(
@@ -106,21 +106,21 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 17;
+        this.state = 19;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
         while (_la === ApiDefParser.T__0) {
           {
             {
-              this.state = 14;
+              this.state = 16;
               this.typedef();
             }
           }
-          this.state = 19;
+          this.state = 21;
           this._errHandler.sync(this);
           _la = this._input.LA(1);
         }
-        this.state = 20;
+        this.state = 22;
         this.match(ApiDefParser.EOF);
       }
     } catch (re) {
@@ -143,15 +143,15 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 22;
-        this.match(ApiDefParser.T__0);
-        this.state = 23;
-        this.match(ApiDefParser.NAME);
         this.state = 24;
-        this.match(ApiDefParser.T__1);
+        this.match(ApiDefParser.T__0);
         this.state = 25;
-        this.union();
+        this.typename();
         this.state = 26;
+        this.match(ApiDefParser.T__1);
+        this.state = 27;
+        this.union();
+        this.state = 28;
         this.match(ApiDefParser.T__2);
       }
     } catch (re) {
@@ -173,28 +173,28 @@ export class ApiDefParser extends Parser {
     this.enterRule(_localctx, 4, ApiDefParser.RULE_union);
     let _la: number;
     try {
-      this.state = 44;
+      this.state = 46;
       this._errHandler.sync(this);
       switch (this._input.LA(1)) {
         case ApiDefParser.T__4:
         case ApiDefParser.NAME:
           this.enterOuterAlt(_localctx, 1);
           {
-            this.state = 28;
+            this.state = 30;
             this.singletype();
-            this.state = 33;
+            this.state = 35;
             this._errHandler.sync(this);
             _la = this._input.LA(1);
             while (_la === ApiDefParser.T__3) {
               {
                 {
-                  this.state = 29;
+                  this.state = 31;
                   this.match(ApiDefParser.T__3);
-                  this.state = 30;
+                  this.state = 32;
                   this.singletype();
                 }
               }
-              this.state = 35;
+              this.state = 37;
               this._errHandler.sync(this);
               _la = this._input.LA(1);
             }
@@ -203,23 +203,23 @@ export class ApiDefParser extends Parser {
         case ApiDefParser.T__3:
           this.enterOuterAlt(_localctx, 2);
           {
-            this.state = 36;
+            this.state = 38;
             this.match(ApiDefParser.T__3);
-            this.state = 37;
+            this.state = 39;
             this.singletype();
-            this.state = 40;
+            this.state = 42;
             this._errHandler.sync(this);
             _la = this._input.LA(1);
             do {
               {
                 {
-                  this.state = 38;
+                  this.state = 40;
                   this.match(ApiDefParser.T__3);
-                  this.state = 39;
+                  this.state = 41;
                   this.singletype();
                 }
               }
-              this.state = 42;
+              this.state = 44;
               this._errHandler.sync(this);
               _la = this._input.LA(1);
             } while (_la === ApiDefParser.T__3);
@@ -249,20 +249,20 @@ export class ApiDefParser extends Parser {
     );
     this.enterRule(_localctx, 6, ApiDefParser.RULE_singletype);
     try {
-      this.state = 48;
+      this.state = 50;
       this._errHandler.sync(this);
       switch (this._input.LA(1)) {
         case ApiDefParser.NAME:
           this.enterOuterAlt(_localctx, 1);
           {
-            this.state = 46;
+            this.state = 48;
             this.typename();
           }
           break;
         case ApiDefParser.T__4:
           this.enterOuterAlt(_localctx, 2);
           {
-            this.state = 47;
+            this.state = 49;
             this.struct();
           }
           break;
@@ -289,7 +289,7 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 50;
+        this.state = 52;
         this.match(ApiDefParser.NAME);
       }
     } catch (re) {
@@ -313,25 +313,25 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 52;
+        this.state = 54;
         this.match(ApiDefParser.T__4);
-        this.state = 58;
+        this.state = 60;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
         while (_la === ApiDefParser.NAME) {
           {
             {
-              this.state = 53;
+              this.state = 55;
               this.structfield();
-              this.state = 54;
+              this.state = 56;
               this.match(ApiDefParser.T__2);
             }
           }
-          this.state = 60;
+          this.state = 62;
           this._errHandler.sync(this);
           _la = this._input.LA(1);
         }
-        this.state = 61;
+        this.state = 63;
         this.match(ApiDefParser.T__5);
       }
     } catch (re) {
@@ -357,11 +357,11 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 63;
-        this.match(ApiDefParser.NAME);
-        this.state = 64;
-        this.match(ApiDefParser.T__6);
         this.state = 65;
+        this.fieldname();
+        this.state = 66;
+        this.match(ApiDefParser.T__6);
+        this.state = 67;
         this.union();
       }
     } catch (re) {
@@ -378,34 +378,61 @@ export class ApiDefParser extends Parser {
     return _localctx;
   }
 
-  public static readonly _serializedATN: string = "\x03\uAF6F\u8320\u479D\uB75C\u4880\u1605\u191C\uAB37\x03\fF\x04\x02\t" +
+  public fieldname(): FieldnameContext {
+    let _localctx: FieldnameContext = new FieldnameContext(
+      this._ctx,
+      this.state,
+    );
+    this.enterRule(_localctx, 14, ApiDefParser.RULE_fieldname);
+    try {
+      this.enterOuterAlt(_localctx, 1);
+      {
+        this.state = 69;
+        this.match(ApiDefParser.NAME);
+      }
+    } catch (re) {
+      if (re instanceof RecognitionException) {
+        _localctx.exception = re;
+        this._errHandler.reportError(this, re);
+        this._errHandler.recover(this, re);
+      } else {
+        throw re;
+      }
+    } finally {
+      this.exitRule();
+    }
+    return _localctx;
+  }
+
+  public static readonly _serializedATN: string = "\x03\uAF6F\u8320\u479D\uB75C\u4880\u1605\u191C\uAB37\x03\vJ\x04\x02\t" +
     "\x02\x04\x03\t\x03\x04\x04\t\x04\x04\x05\t\x05\x04\x06\t\x06\x04\x07\t" +
-    "\x07\x04\b\t\b\x03\x02\x07\x02\x12\n\x02\f\x02\x0E\x02\x15\v\x02\x03\x02" +
-    "\x03\x02\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x04\x03\x04" +
-    '\x03\x04\x07\x04"\n\x04\f\x04\x0E\x04%\v\x04\x03\x04\x03\x04\x03\x04' +
-    "\x03\x04\x06\x04+\n\x04\r\x04\x0E\x04,\x05\x04/\n\x04\x03\x05\x03\x05" +
-    "\x05\x053\n\x05\x03\x06\x03\x06\x03\x07\x03\x07\x03\x07\x03\x07\x07\x07" +
-    ";\n\x07\f\x07\x0E\x07>\v\x07\x03\x07\x03\x07\x03\b\x03\b\x03\b\x03\b\x03" +
-    "\b\x02\x02\x02\t\x02\x02\x04\x02\x06\x02\b\x02\n\x02\f\x02\x0E\x02\x02" +
-    "\x02D\x02\x13\x03\x02\x02\x02\x04\x18\x03\x02\x02\x02\x06.\x03\x02\x02" +
-    "\x02\b2\x03\x02\x02\x02\n4\x03\x02\x02\x02\f6\x03\x02\x02\x02\x0EA\x03" +
-    "\x02\x02\x02\x10\x12\x05\x04\x03\x02\x11\x10\x03\x02\x02\x02\x12\x15\x03" +
-    "\x02\x02\x02\x13\x11\x03\x02\x02\x02\x13\x14\x03\x02\x02\x02\x14\x16\x03" +
-    "\x02\x02\x02\x15\x13\x03\x02\x02\x02\x16\x17\x07\x02\x02\x03\x17\x03\x03" +
-    "\x02\x02\x02\x18\x19\x07\x03\x02\x02\x19\x1A\x07\n\x02\x02\x1A\x1B\x07" +
-    "\x04\x02\x02\x1B\x1C\x05\x06\x04\x02\x1C\x1D\x07\x05\x02\x02\x1D\x05\x03" +
-    '\x02\x02\x02\x1E#\x05\b\x05\x02\x1F \x07\x06\x02\x02 "\x05\b\x05\x02' +
-    '!\x1F\x03\x02\x02\x02"%\x03\x02\x02\x02#!\x03\x02\x02\x02#$\x03\x02\x02' +
-    "\x02$/\x03\x02\x02\x02%#\x03\x02\x02\x02&'\x07\x06\x02\x02'*\x05\b\x05" +
-    "\x02()\x07\x06\x02\x02)+\x05\b\x05\x02*(\x03\x02\x02\x02+,\x03\x02\x02" +
-    "\x02,*\x03\x02\x02\x02,-\x03\x02\x02\x02-/\x03\x02\x02\x02.\x1E\x03\x02" +
-    "\x02\x02.&\x03\x02\x02\x02/\x07\x03\x02\x02\x0203\x05\n\x06\x0213\x05" +
-    "\f\x07\x0220\x03\x02\x02\x0221\x03\x02\x02\x023\t\x03\x02\x02\x0245\x07" +
-    "\n\x02\x025\v\x03\x02\x02\x026<\x07\x07\x02\x0278\x05\x0E\b\x0289\x07" +
-    "\x05\x02\x029;\x03\x02\x02\x02:7\x03\x02\x02\x02;>\x03\x02\x02\x02<:\x03" +
-    "\x02\x02\x02<=\x03\x02\x02\x02=?\x03\x02\x02\x02><\x03\x02\x02\x02?@\x07" +
-    "\b\x02\x02@\r\x03\x02\x02\x02AB\x07\n\x02\x02BC\x07\t\x02\x02CD\x05\x06" +
-    "\x04\x02D\x0F\x03\x02\x02\x02\b\x13#,.2<";
+    "\x07\x04\b\t\b\x04\t\t\t\x03\x02\x07\x02\x14\n\x02\f\x02\x0E\x02\x17\v" +
+    "\x02\x03\x02\x03\x02\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03" +
+    "\x04\x03\x04\x03\x04\x07\x04$\n\x04\f\x04\x0E\x04'\v\x04\x03\x04\x03" +
+    "\x04\x03\x04\x03\x04\x06\x04-\n\x04\r\x04\x0E\x04.\x05\x041\n\x04\x03" +
+    "\x05\x03\x05\x05\x055\n\x05\x03\x06\x03\x06\x03\x07\x03\x07\x03\x07\x03" +
+    "\x07\x07\x07=\n\x07\f\x07\x0E\x07@\v\x07\x03\x07\x03\x07\x03\b\x03\b\x03" +
+    "\b\x03\b\x03\t\x03\t\x03\t\x02\x02\x02\n\x02\x02\x04\x02\x06\x02\b\x02" +
+    "\n\x02\f\x02\x0E\x02\x10\x02\x02\x02G\x02\x15\x03\x02\x02\x02\x04\x1A" +
+    "\x03\x02\x02\x02\x060\x03\x02\x02\x02\b4\x03\x02\x02\x02\n6\x03\x02\x02" +
+    "\x02\f8\x03\x02\x02\x02\x0EC\x03\x02\x02\x02\x10G\x03\x02\x02\x02\x12" +
+    "\x14\x05\x04\x03\x02\x13\x12\x03\x02\x02\x02\x14\x17\x03\x02\x02\x02\x15" +
+    "\x13\x03\x02\x02\x02\x15\x16\x03\x02\x02\x02\x16\x18\x03\x02\x02\x02\x17" +
+    "\x15\x03\x02\x02\x02\x18\x19\x07\x02\x02\x03\x19\x03\x03\x02\x02\x02\x1A" +
+    "\x1B\x07\x03\x02\x02\x1B\x1C\x05\n\x06\x02\x1C\x1D\x07\x04\x02\x02\x1D" +
+    "\x1E\x05\x06\x04\x02\x1E\x1F\x07\x05\x02\x02\x1F\x05\x03\x02\x02\x02 " +
+    '%\x05\b\x05\x02!"\x07\x06\x02\x02"$\x05\b\x05\x02#!\x03\x02\x02\x02' +
+    "$'\x03\x02\x02\x02%#\x03\x02\x02\x02%&\x03\x02\x02\x02&1\x03\x02\x02" +
+    "\x02'%\x03\x02\x02\x02()\x07\x06\x02\x02),\x05\b\x05\x02*+\x07\x06\x02" +
+    "\x02+-\x05\b\x05\x02,*\x03\x02\x02\x02-.\x03\x02\x02\x02.,\x03\x02\x02" +
+    "\x02./\x03\x02\x02\x02/1\x03\x02\x02\x020 \x03\x02\x02\x020(\x03\x02\x02" +
+    "\x021\x07\x03\x02\x02\x0225\x05\n\x06\x0235\x05\f\x07\x0242\x03\x02\x02" +
+    "\x0243\x03\x02\x02\x025\t\x03\x02\x02\x0267\x07\n\x02\x027\v\x03\x02\x02" +
+    "\x028>\x07\x07\x02\x029:\x05\x0E\b\x02:;\x07\x05\x02\x02;=\x03\x02\x02" +
+    "\x02<9\x03\x02\x02\x02=@\x03\x02\x02\x02><\x03\x02\x02\x02>?\x03\x02\x02" +
+    "\x02?A\x03\x02\x02\x02@>\x03\x02\x02\x02AB\x07\b\x02\x02B\r\x03\x02\x02" +
+    "\x02CD\x05\x10\t\x02DE\x07\t\x02\x02EF\x05\x06\x04\x02F\x0F\x03\x02\x02" +
+    "\x02GH\x07\n\x02\x02H\x11\x03\x02\x02\x02\b\x15%.04>";
   public static __ATN: ATN;
   public static get _ATN(): ATN {
     if (!ApiDefParser.__ATN) {
@@ -442,8 +469,8 @@ export class ApiContext extends ParserRuleContext {
 }
 
 export class TypedefContext extends ParserRuleContext {
-  public NAME(): TerminalNode {
-    return this.getToken(ApiDefParser.NAME, 0);
+  public typename(): TypenameContext {
+    return this.getRuleContext(0, TypenameContext);
   }
   public union(): UnionContext {
     return this.getRuleContext(0, UnionContext);
@@ -530,8 +557,8 @@ export class StructContext extends ParserRuleContext {
 }
 
 export class StructfieldContext extends ParserRuleContext {
-  public NAME(): TerminalNode {
-    return this.getToken(ApiDefParser.NAME, 0);
+  public fieldname(): FieldnameContext {
+    return this.getRuleContext(0, FieldnameContext);
   }
   public union(): UnionContext {
     return this.getRuleContext(0, UnionContext);
@@ -543,5 +570,19 @@ export class StructfieldContext extends ParserRuleContext {
   @Override
   public get ruleIndex(): number {
     return ApiDefParser.RULE_structfield;
+  }
+}
+
+export class FieldnameContext extends ParserRuleContext {
+  public NAME(): TerminalNode {
+    return this.getToken(ApiDefParser.NAME, 0);
+  }
+  constructor(parent: ParserRuleContext, invokingState: number);
+  constructor(parent: ParserRuleContext, invokingState: number) {
+    super(parent, invokingState);
+  }
+  @Override
+  public get ruleIndex(): number {
+    return ApiDefParser.RULE_fieldname;
   }
 }

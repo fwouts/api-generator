@@ -66,7 +66,7 @@ export function parse(code: string): Api {
 
 function read_typedef(typedef: TypedefContext): TypeDef {
   return {
-    name: typedef.NAME().text,
+    name: typedef.typename().text,
     type: read_union(typedef.union()),
   };
 }
@@ -103,9 +103,9 @@ function read_struct(struct: StructContext): Struct {
 }
 
 function read_structfield(structfield: StructfieldContext): [string, Type] {
-  return [structfield.NAME().text, read_union(structfield.union())];
+  return [structfield.fieldname().text, read_union(structfield.union())];
 }
 
 function read_typename(typename: TypenameContext): TypeName {
-  return typename.NAME().text;
+  return typename.text;
 }

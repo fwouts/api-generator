@@ -5,7 +5,7 @@ api
     ;
 
 typedef
-    : 'type' NAME '=' union ';'
+    : 'type' typename '=' union ';'
     ;
 
 union
@@ -27,15 +27,15 @@ struct
     ;
 
 structfield
-    :  NAME ':' union
+    : fieldname ':' union
+    ;
+
+fieldname
+    : NAME
     ;
 
 NAME
     : [a-zA-Z][a-zA-Z0-9]*
-    ;
-
-STRING
-    : '"' ~('"')* '"'
     ;
 
 WS
