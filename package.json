@@ -10,6 +10,7 @@
     "generate-grammar": "antlr4ts -no-listener src/grammar/ApiDef.g4"
   },
   "jest": {
+    "rootDir": "src",
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
     },
