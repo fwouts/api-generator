@@ -1,7 +1,7 @@
 grammar ApiDef;
 
 api
-    : typedef*
+    : typedef* EOF
     ;
 
 typedef

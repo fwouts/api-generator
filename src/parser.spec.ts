@@ -20,6 +20,13 @@ test("parser", () => {
   type a = 123
   `),
   ).toThrow("Syntax error (2:11): token recognition error at: '1'.");
+  expect(() =>
+    parse(`
+export type a = string;
+`),
+  ).toThrow(
+    "Syntax error (2:0): extraneous input 'export' expecting {<EOF>, 'type'}.",
+  );
   expect(parse(``)).toEqual({
     typeDefs: [],
   });
