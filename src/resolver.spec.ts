@@ -13,21 +13,17 @@ type b = {
 type c = string;
 `);
 
+const UNKNOWN_TYPE = parse(`
+type a = b;
+`);
+
 const DEFINED_TWICE = parse(`
 type a = string;
 type a = string;
 `);
 
 test("resolver", () => {
-  expect(resolve(VALID, ["string"])).toEqual({
-    kind: "failure",
-    errors: ["Type a refers to unknown type int."],
-  });
-  expect(resolve(VALID, ["a", "string"])).toEqual({
-    kind: "failure",
-    errors: ["Cannot redefine known type a."],
-  });
-  expect(resolve(VALID, ["int", "string"])).toEqual({
+  expect(resolve(VALID)).toEqual({
     kind: "success",
     definedTypes: {
       a: ["b", "string", "int"],
@@ -37,9 +33,12 @@ test("resolver", () => {
       },
       c: "string",
     },
-    knownTypes: ["int", "string"],
   });
-  expect(resolve(DEFINED_TWICE, ["int", "string"])).toEqual({
+  expect(resolve(UNKNOWN_TYPE)).toEqual({
+    kind: "failure",
+    errors: ["Type a refers to unknown type b."],
+  });
+  expect(resolve(DEFINED_TWICE)).toEqual({
     kind: "failure",
     errors: ["Type a is defined multiple times."],
   });

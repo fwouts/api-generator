@@ -1,28 +1,32 @@
 import { Api, Type } from "./defs";
 
-export type KnownTypes = string[];
+export const PRIMARY_TYPES = new Set([
+  "bool",
+  "int",
+  "float",
+  "string",
+  "null",
+]);
 
-export interface DefinedTypes {
+export interface TypeDefinitions {
   [name: string]: Type;
 }
 
 export type ResolveResult =
   | {
       kind: "success";
-      knownTypes: KnownTypes;
-      definedTypes: DefinedTypes;
+      definedTypes: TypeDefinitions;
     }
   | {
       kind: "failure";
       errors: string[];
     };
 
-export function resolve(api: Api, knownTypes: KnownTypes): ResolveResult {
-  const knownTypesSet = new Set(knownTypes);
+export function resolve(api: Api): ResolveResult {
   const recordedErrors: string[] = [];
-  const definedTypes: DefinedTypes = {};
+  const definedTypes: TypeDefinitions = {};
   for (const typeDef of api.typeDefs) {
-    if (knownTypesSet.has(typeDef.name)) {
+    if (PRIMARY_TYPES.has(typeDef.name)) {
       recordedErrors.push(`Cannot redefine known type ${typeDef.name}.`);
       continue;
     }
@@ -38,7 +42,6 @@ export function resolve(api: Api, knownTypes: KnownTypes): ResolveResult {
   if (recordedErrors.length === 0) {
     return {
       kind: "success",
-      knownTypes,
       definedTypes,
     };
   } else {
@@ -51,7 +54,7 @@ export function resolve(api: Api, knownTypes: KnownTypes): ResolveResult {
   function checkType(name: string, type: Type, errors: string[]) {
     if (typeof type === "string") {
       // TypeName.
-      if (!knownTypesSet.has(type) && !(type in definedTypes)) {
+      if (!PRIMARY_TYPES.has(type) && !(type in definedTypes)) {
         errors.push(`Type ${name} refers to unknown type ${type}.`);
       }
     } else if (type instanceof Array) {
