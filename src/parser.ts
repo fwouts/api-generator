@@ -99,7 +99,7 @@ function read_route(route: RouteContext): RouteSubpath[] {
 
 function read_subpath(subpath: SubpathContext): RouteSubpath {
   return {
-    name: subpath.NAME().text,
+    name: subpath.name().text,
     dynamic: !!subpath._dynamic,
   };
 }

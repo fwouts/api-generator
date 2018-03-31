@@ -1,4 +1,4 @@
-import { Api, Type } from "./defs";
+import { Api, Endpoint, Type } from "./defs";
 
 export const PRIMARY_TYPES = new Set([
   "bool",
@@ -8,6 +8,10 @@ export const PRIMARY_TYPES = new Set([
   "null",
 ]);
 
+export interface EndpointDefinitions {
+  [name: string]: Endpoint;
+}
+
 export interface TypeDefinitions {
   [name: string]: Type;
 }
@@ -15,6 +19,7 @@ export interface TypeDefinitions {
 export type ResolveResult =
   | {
       kind: "success";
+      definedEndpoints: EndpointDefinitions;
       definedTypes: TypeDefinitions;
     }
   | {
@@ -24,24 +29,53 @@ export type ResolveResult =
 
 export function resolve(api: Api): ResolveResult {
   const recordedErrors: string[] = [];
+  const definedEndpoints: EndpointDefinitions = {};
   const definedTypes: TypeDefinitions = {};
   for (const typeDef of api.typeDefs) {
+    let error = false;
     if (PRIMARY_TYPES.has(typeDef.name)) {
       recordedErrors.push(`Cannot redefine known type ${typeDef.name}.`);
-      continue;
+      error = true;
     }
     if (typeDef.name in definedTypes) {
       recordedErrors.push(`Type ${typeDef.name} is defined multiple times.`);
-      continue;
+      error = true;
     }
-    definedTypes[typeDef.name] = typeDef.type;
+    if (!error) {
+      definedTypes[typeDef.name] = typeDef.type;
+    }
   }
   for (const [name, type] of Object.entries(definedTypes)) {
     checkType(name, type, recordedErrors);
   }
+  for (const endpoint of api.endpoints) {
+    let error = false;
+    if (endpoint.name in definedEndpoints) {
+      recordedErrors.push(`Cannot redefine endpoint ${endpoint.name}.`);
+      error = true;
+    }
+    if (
+      !PRIMARY_TYPES.has(endpoint.input) &&
+      !(endpoint.input in definedTypes)
+    ) {
+      recordedErrors.push(`No such type ${endpoint.input}.`);
+      error = true;
+    }
+    if (
+      !PRIMARY_TYPES.has(endpoint.output) &&
+      !(endpoint.output in definedTypes)
+    ) {
+      recordedErrors.push(`No such type ${endpoint.output}.`);
+      error = true;
+    }
+    if (!error) {
+      definedEndpoints[endpoint.name] = endpoint;
+    }
+  }
   if (recordedErrors.length === 0) {
     return {
       kind: "success",
+      definedEndpoints,
       definedTypes,
     };
   } else {

@@ -21,13 +21,15 @@ type a = b;
 type b =
   `),
   ).toThrow(
-    "Syntax error (4:2): mismatched input '<EOF>' expecting {'|', '{', NAME}.",
+    "Syntax error (4:2): mismatched input '<EOF>' expecting {'endpoint', 'type', '|', '{', NAME}.",
   );
   expect(() =>
     parse(`
 endpoint a : GET /path
   `),
-  ).toThrow("Syntax error (3:2): mismatched input '<EOF>' expecting NAME.");
+  ).toThrow(
+    "Syntax error (3:2): mismatched input '<EOF>' expecting {'endpoint', 'type', NAME}.",
+  );
 });
 
 test("parser rejects invalid types", () => {
@@ -60,15 +62,21 @@ test("parser works", () => {
     parse(`
 endpoint createUser: POST /users b -> c;
 endpoint deleteUser: DELETE /users/:id null -> null;
+endpoint endpoint: POST /my/endpoint/type type -> endpoint;
 
 type a = b | string | int;
 
 type b = {
   field1: string;
   field2: a;
+  type: type;
 };
 
 type c = string;
+
+type type = a;
+
+type endpoint = b;
   `),
   ).toEqual({
     endpoints: [
@@ -100,6 +108,26 @@ type c = string;
         input: "null",
         output: "null",
       },
+      {
+        name: "endpoint",
+        method: "POST",
+        route: [
+          {
+            dynamic: false,
+            name: "my",
+          },
+          {
+            dynamic: false,
+            name: "endpoint",
+          },
+          {
+            dynamic: false,
+            name: "type",
+          },
+        ],
+        input: "type",
+        output: "endpoint",
+      },
     ],
     typeDefs: [
       {
@@ -111,11 +139,20 @@ type c = string;
         type: {
           field1: "string",
           field2: "a",
+          type: "type",
         },
       },
       {
         name: "c",
         type: "string",
+      },
+      {
+        name: "type",
+        type: "a",
+      },
+      {
+        name: "endpoint",
+        type: "b",
       },
     ],
   });

@@ -47,6 +47,7 @@ export class ApiDefParser extends Parser {
   public static readonly RULE_struct = 10;
   public static readonly RULE_structfield = 11;
   public static readonly RULE_fieldname = 12;
+  public static readonly RULE_name = 13;
   public static readonly ruleNames: string[] = [
     "api",
     "endpoint",
@@ -61,6 +62,7 @@ export class ApiDefParser extends Parser {
     "struct",
     "structfield",
     "fieldname",
+    "name",
   ];
 
   private static readonly _LITERAL_NAMES: (string | undefined)[] = [
@@ -138,23 +140,23 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 30;
+        this.state = 32;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
         while (_la === ApiDefParser.T__0 || _la === ApiDefParser.T__9) {
           {
-            this.state = 28;
+            this.state = 30;
             this._errHandler.sync(this);
             switch (this._input.LA(1)) {
               case ApiDefParser.T__0:
                 {
-                  this.state = 26;
+                  this.state = 28;
                   this.endpoint();
                 }
                 break;
               case ApiDefParser.T__9:
                 {
-                  this.state = 27;
+                  this.state = 29;
                   this.typedef();
                 }
                 break;
@@ -162,11 +164,11 @@ export class ApiDefParser extends Parser {
                 throw new NoViableAltException(this);
             }
           }
-          this.state = 32;
+          this.state = 34;
           this._errHandler.sync(this);
           _la = this._input.LA(1);
         }
-        this.state = 33;
+        this.state = 35;
         this.match(ApiDefParser.EOF);
       }
     } catch (re) {
@@ -189,23 +191,23 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 35;
-        this.match(ApiDefParser.T__0);
-        this.state = 36;
-        this.endpointname();
         this.state = 37;
-        this.match(ApiDefParser.T__1);
+        this.match(ApiDefParser.T__0);
         this.state = 38;
-        this.method();
+        this.endpointname();
         this.state = 39;
-        this.route();
+        this.match(ApiDefParser.T__1);
         this.state = 40;
-        this.typename();
+        this.method();
         this.state = 41;
-        this.match(ApiDefParser.T__2);
+        this.route();
         this.state = 42;
         this.typename();
         this.state = 43;
+        this.match(ApiDefParser.T__2);
+        this.state = 44;
+        this.typename();
+        this.state = 45;
         this.match(ApiDefParser.T__3);
       }
     } catch (re) {
@@ -231,8 +233,8 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 45;
-        this.match(ApiDefParser.NAME);
+        this.state = 47;
+        this.name();
       }
     } catch (re) {
       if (re instanceof RecognitionException) {
@@ -255,7 +257,7 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 47;
+        this.state = 49;
         _la = this._input.LA(1);
         if (
           !(
@@ -299,19 +301,19 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 51;
+        this.state = 53;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
         do {
           {
             {
-              this.state = 49;
+              this.state = 51;
               this.match(ApiDefParser.T__8);
-              this.state = 50;
+              this.state = 52;
               this.subpath();
             }
           }
-          this.state = 53;
+          this.state = 55;
           this._errHandler.sync(this);
           _la = this._input.LA(1);
         } while (_la === ApiDefParser.T__8);
@@ -337,18 +339,18 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 56;
+        this.state = 58;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
         if (_la === ApiDefParser.T__1) {
           {
-            this.state = 55;
+            this.state = 57;
             _localctx._dynamic = this.match(ApiDefParser.T__1);
           }
         }
 
-        this.state = 58;
-        this.match(ApiDefParser.NAME);
+        this.state = 60;
+        this.name();
       }
     } catch (re) {
       if (re instanceof RecognitionException) {
@@ -370,15 +372,15 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 60;
-        this.match(ApiDefParser.T__9);
-        this.state = 61;
-        this.typename();
         this.state = 62;
-        this.match(ApiDefParser.T__10);
+        this.match(ApiDefParser.T__9);
         this.state = 63;
-        this.union();
+        this.typename();
         this.state = 64;
+        this.match(ApiDefParser.T__10);
+        this.state = 65;
+        this.union();
+        this.state = 66;
         this.match(ApiDefParser.T__3);
       }
     } catch (re) {
@@ -400,28 +402,30 @@ export class ApiDefParser extends Parser {
     this.enterRule(_localctx, 14, ApiDefParser.RULE_union);
     let _la: number;
     try {
-      this.state = 82;
+      this.state = 84;
       this._errHandler.sync(this);
       switch (this._input.LA(1)) {
+        case ApiDefParser.T__0:
+        case ApiDefParser.T__9:
         case ApiDefParser.T__12:
         case ApiDefParser.NAME:
           this.enterOuterAlt(_localctx, 1);
           {
-            this.state = 66;
+            this.state = 68;
             this.singletype();
-            this.state = 71;
+            this.state = 73;
             this._errHandler.sync(this);
             _la = this._input.LA(1);
             while (_la === ApiDefParser.T__11) {
               {
                 {
-                  this.state = 67;
+                  this.state = 69;
                   this.match(ApiDefParser.T__11);
-                  this.state = 68;
+                  this.state = 70;
                   this.singletype();
                 }
               }
-              this.state = 73;
+              this.state = 75;
               this._errHandler.sync(this);
               _la = this._input.LA(1);
             }
@@ -430,23 +434,23 @@ export class ApiDefParser extends Parser {
         case ApiDefParser.T__11:
           this.enterOuterAlt(_localctx, 2);
           {
-            this.state = 74;
+            this.state = 76;
             this.match(ApiDefParser.T__11);
-            this.state = 75;
+            this.state = 77;
             this.singletype();
-            this.state = 78;
+            this.state = 80;
             this._errHandler.sync(this);
             _la = this._input.LA(1);
             do {
               {
                 {
-                  this.state = 76;
+                  this.state = 78;
                   this.match(ApiDefParser.T__11);
-                  this.state = 77;
+                  this.state = 79;
                   this.singletype();
                 }
               }
-              this.state = 80;
+              this.state = 82;
               this._errHandler.sync(this);
               _la = this._input.LA(1);
             } while (_la === ApiDefParser.T__11);
@@ -476,20 +480,22 @@ export class ApiDefParser extends Parser {
     );
     this.enterRule(_localctx, 16, ApiDefParser.RULE_singletype);
     try {
-      this.state = 86;
+      this.state = 88;
       this._errHandler.sync(this);
       switch (this._input.LA(1)) {
+        case ApiDefParser.T__0:
+        case ApiDefParser.T__9:
         case ApiDefParser.NAME:
           this.enterOuterAlt(_localctx, 1);
           {
-            this.state = 84;
+            this.state = 86;
             this.typename();
           }
           break;
         case ApiDefParser.T__12:
           this.enterOuterAlt(_localctx, 2);
           {
-            this.state = 85;
+            this.state = 87;
             this.struct();
           }
           break;
@@ -516,8 +522,8 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 88;
-        this.match(ApiDefParser.NAME);
+        this.state = 90;
+        this.name();
       }
     } catch (re) {
       if (re instanceof RecognitionException) {
@@ -540,25 +546,32 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 90;
+        this.state = 92;
         this.match(ApiDefParser.T__12);
-        this.state = 96;
+        this.state = 98;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
-        while (_la === ApiDefParser.NAME) {
+        while (
+          (_la & ~0x1f) === 0 &&
+          ((1 << _la) &
+            ((1 << ApiDefParser.T__0) |
+              (1 << ApiDefParser.T__9) |
+              (1 << ApiDefParser.NAME))) !==
+            0
+        ) {
           {
             {
-              this.state = 91;
+              this.state = 93;
               this.structfield();
-              this.state = 92;
+              this.state = 94;
               this.match(ApiDefParser.T__3);
             }
           }
-          this.state = 98;
+          this.state = 100;
           this._errHandler.sync(this);
           _la = this._input.LA(1);
         }
-        this.state = 99;
+        this.state = 101;
         this.match(ApiDefParser.T__13);
       }
     } catch (re) {
@@ -584,11 +597,11 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 101;
-        this.fieldname();
-        this.state = 102;
-        this.match(ApiDefParser.T__1);
         this.state = 103;
+        this.fieldname();
+        this.state = 104;
+        this.match(ApiDefParser.T__1);
+        this.state = 105;
         this.union();
       }
     } catch (re) {
@@ -614,8 +627,8 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 105;
-        this.match(ApiDefParser.NAME);
+        this.state = 107;
+        this.name();
       }
     } catch (re) {
       if (re instanceof RecognitionException) {
@@ -631,47 +644,91 @@ export class ApiDefParser extends Parser {
     return _localctx;
   }
 
-  public static readonly _serializedATN: string = "\x03\uAF6F\u8320\u479D\uB75C\u4880\u1605\u191C\uAB37\x03\x12n\x04\x02" +
+  public name(): NameContext {
+    let _localctx: NameContext = new NameContext(this._ctx, this.state);
+    this.enterRule(_localctx, 26, ApiDefParser.RULE_name);
+    let _la: number;
+    try {
+      this.enterOuterAlt(_localctx, 1);
+      {
+        this.state = 109;
+        _la = this._input.LA(1);
+        if (
+          !(
+            (_la & ~0x1f) === 0 &&
+            ((1 << _la) &
+              ((1 << ApiDefParser.T__0) |
+                (1 << ApiDefParser.T__9) |
+                (1 << ApiDefParser.NAME))) !==
+              0
+          )
+        ) {
+          this._errHandler.recoverInline(this);
+        } else {
+          if (this._input.LA(1) === Token.EOF) {
+            this.matchedEOF = true;
+          }
+
+          this._errHandler.reportMatch(this);
+          this.consume();
+        }
+      }
+    } catch (re) {
+      if (re instanceof RecognitionException) {
+        _localctx.exception = re;
+        this._errHandler.reportError(this, re);
+        this._errHandler.recover(this, re);
+      } else {
+        throw re;
+      }
+    } finally {
+      this.exitRule();
+    }
+    return _localctx;
+  }
+
+  public static readonly _serializedATN: string = "\x03\uAF6F\u8320\u479D\uB75C\u4880\u1605\u191C\uAB37\x03\x12r\x04\x02" +
     "\t\x02\x04\x03\t\x03\x04\x04\t\x04\x04\x05\t\x05\x04\x06\t\x06\x04\x07" +
     "\t\x07\x04\b\t\b\x04\t\t\t\x04\n\t\n\x04\v\t\v\x04\f\t\f\x04\r\t\r\x04" +
-    '\x0E\t\x0E\x03\x02\x03\x02\x07\x02\x1F\n\x02\f\x02\x0E\x02"\v\x02\x03' +
-    "\x02\x03\x02\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03" +
-    "\x03\x03\x03\x03\x03\x03\x04\x03\x04\x03\x05\x03\x05\x03\x06\x03\x06\x06" +
-    "\x066\n\x06\r\x06\x0E\x067\x03\x07\x05\x07;\n\x07\x03\x07\x03\x07\x03" +
-    "\b\x03\b\x03\b\x03\b\x03\b\x03\b\x03\t\x03\t\x03\t\x07\tH\n\t\f\t\x0E" +
-    "\tK\v\t\x03\t\x03\t\x03\t\x03\t\x06\tQ\n\t\r\t\x0E\tR\x05\tU\n\t\x03\n" +
-    "\x03\n\x05\nY\n\n\x03\v\x03\v\x03\f\x03\f\x03\f\x03\f\x07\fa\n\f\f\f\x0E" +
-    "\fd\v\f\x03\f\x03\f\x03\r\x03\r\x03\r\x03\r\x03\x0E\x03\x0E\x03\x0E\x02" +
-    "\x02\x02\x0F\x02\x02\x04\x02\x06\x02\b\x02\n\x02\f\x02\x0E\x02\x10\x02" +
-    "\x12\x02\x14\x02\x16\x02\x18\x02\x1A\x02\x02\x03\x03\x02\x07\ni\x02 \x03" +
-    "\x02\x02\x02\x04%\x03\x02\x02\x02\x06/\x03\x02\x02\x02\b1\x03\x02\x02" +
-    "\x02\n5\x03\x02\x02\x02\f:\x03\x02\x02\x02\x0E>\x03\x02\x02\x02\x10T\x03" +
-    "\x02\x02\x02\x12X\x03\x02\x02\x02\x14Z\x03\x02\x02\x02\x16\\\x03\x02\x02" +
-    "\x02\x18g\x03\x02\x02\x02\x1Ak\x03\x02\x02\x02\x1C\x1F\x05\x04\x03\x02" +
-    "\x1D\x1F\x05\x0E\b\x02\x1E\x1C\x03\x02\x02\x02\x1E\x1D\x03\x02\x02\x02" +
-    '\x1F"\x03\x02\x02\x02 \x1E\x03\x02\x02\x02 !\x03\x02\x02\x02!#\x03\x02' +
-    '\x02\x02" \x03\x02\x02\x02#$\x07\x02\x02\x03$\x03\x03\x02\x02\x02%&\x07' +
-    "\x03\x02\x02&'\x05\x06\x04\x02'(\x07\x04\x02\x02()\x05\b\x05\x02)*\x05" +
-    "\n\x06\x02*+\x05\x14\v\x02+,\x07\x05\x02\x02,-\x05\x14\v\x02-.\x07\x06" +
-    "\x02\x02.\x05\x03\x02\x02\x02/0\x07\x11\x02\x020\x07\x03\x02\x02\x021" +
-    "2\t\x02\x02\x022\t\x03\x02\x02\x0234\x07\v\x02\x0246\x05\f\x07\x0253\x03" +
-    "\x02\x02\x0267\x03\x02\x02\x0275\x03\x02\x02\x0278\x03\x02\x02\x028\v" +
-    "\x03\x02\x02\x029;\x07\x04\x02\x02:9\x03\x02\x02\x02:;\x03\x02\x02\x02" +
-    ";<\x03\x02\x02\x02<=\x07\x11\x02\x02=\r\x03\x02\x02\x02>?\x07\f\x02\x02" +
-    "?@\x05\x14\v\x02@A\x07\r\x02\x02AB\x05\x10\t\x02BC\x07\x06\x02\x02C\x0F" +
-    "\x03\x02\x02\x02DI\x05\x12\n\x02EF\x07\x0E\x02\x02FH\x05\x12\n\x02GE\x03" +
-    "\x02\x02\x02HK\x03\x02\x02\x02IG\x03\x02\x02\x02IJ\x03\x02\x02\x02JU\x03" +
-    "\x02\x02\x02KI\x03\x02\x02\x02LM\x07\x0E\x02\x02MP\x05\x12\n\x02NO\x07" +
-    "\x0E\x02\x02OQ\x05\x12\n\x02PN\x03\x02\x02\x02QR\x03\x02\x02\x02RP\x03" +
-    "\x02\x02\x02RS\x03\x02\x02\x02SU\x03\x02\x02\x02TD\x03\x02\x02\x02TL\x03" +
-    "\x02\x02\x02U\x11\x03\x02\x02\x02VY\x05\x14\v\x02WY\x05\x16\f\x02XV\x03" +
-    "\x02\x02\x02XW\x03\x02\x02\x02Y\x13\x03\x02\x02\x02Z[\x07\x11\x02\x02" +
-    "[\x15\x03\x02\x02\x02\\b\x07\x0F\x02\x02]^\x05\x18\r\x02^_\x07\x06\x02" +
-    "\x02_a\x03\x02\x02\x02`]\x03\x02\x02\x02ad\x03\x02\x02\x02b`\x03\x02\x02" +
-    "\x02bc\x03\x02\x02\x02ce\x03\x02\x02\x02db\x03\x02\x02\x02ef\x07\x10\x02" +
-    "\x02f\x17\x03\x02\x02\x02gh\x05\x1A\x0E\x02hi\x07\x04\x02\x02ij\x05\x10" +
-    "\t\x02j\x19\x03\x02\x02\x02kl\x07\x11\x02\x02l\x1B\x03\x02\x02\x02\v\x1E" +
-    " 7:IRTXb";
+    "\x0E\t\x0E\x04\x0F\t\x0F\x03\x02\x03\x02\x07\x02!\n\x02\f\x02\x0E\x02" +
+    "$\v\x02\x03\x02\x03\x02\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03" +
+    "\x03\x03\x03\x03\x03\x03\x03\x03\x03\x04\x03\x04\x03\x05\x03\x05\x03\x06" +
+    "\x03\x06\x06\x068\n\x06\r\x06\x0E\x069\x03\x07\x05\x07=\n\x07\x03\x07" +
+    "\x03\x07\x03\b\x03\b\x03\b\x03\b\x03\b\x03\b\x03\t\x03\t\x03\t\x07\tJ" +
+    "\n\t\f\t\x0E\tM\v\t\x03\t\x03\t\x03\t\x03\t\x06\tS\n\t\r\t\x0E\tT\x05" +
+    "\tW\n\t\x03\n\x03\n\x05\n[\n\n\x03\v\x03\v\x03\f\x03\f\x03\f\x03\f\x07" +
+    "\fc\n\f\f\f\x0E\ff\v\f\x03\f\x03\f\x03\r\x03\r\x03\r\x03\r\x03\x0E\x03" +
+    "\x0E\x03\x0F\x03\x0F\x03\x0F\x02\x02\x02\x10\x02\x02\x04\x02\x06\x02\b" +
+    "\x02\n\x02\f\x02\x0E\x02\x10\x02\x12\x02\x14\x02\x16\x02\x18\x02\x1A\x02" +
+    '\x1C\x02\x02\x04\x03\x02\x07\n\x05\x02\x03\x03\f\f\x11\x11l\x02"\x03' +
+    "\x02\x02\x02\x04'\x03\x02\x02\x02\x061\x03\x02\x02\x02\b3\x03\x02\x02" +
+    "\x02\n7\x03\x02\x02\x02\f<\x03\x02\x02\x02\x0E@\x03\x02\x02\x02\x10V\x03" +
+    "\x02\x02\x02\x12Z\x03\x02\x02\x02\x14\\\x03\x02\x02\x02\x16^\x03\x02\x02" +
+    "\x02\x18i\x03\x02\x02\x02\x1Am\x03\x02\x02\x02\x1Co\x03\x02\x02\x02\x1E" +
+    "!\x05\x04\x03\x02\x1F!\x05\x0E\b\x02 \x1E\x03\x02\x02\x02 \x1F\x03\x02" +
+    '\x02\x02!$\x03\x02\x02\x02" \x03\x02\x02\x02"#\x03\x02\x02\x02#%\x03' +
+    '\x02\x02\x02$"\x03\x02\x02\x02%&\x07\x02\x02\x03&\x03\x03\x02\x02\x02' +
+    "'(\x07\x03\x02\x02()\x05\x06\x04\x02)*\x07\x04\x02\x02*+\x05\b\x05\x02" +
+    "+,\x05\n\x06\x02,-\x05\x14\v\x02-.\x07\x05\x02\x02./\x05\x14\v\x02/0\x07" +
+    "\x06\x02\x020\x05\x03\x02\x02\x0212\x05\x1C\x0F\x022\x07\x03\x02\x02\x02" +
+    "34\t\x02\x02\x024\t\x03\x02\x02\x0256\x07\v\x02\x0268\x05\f\x07\x0275" +
+    "\x03\x02\x02\x0289\x03\x02\x02\x0297\x03\x02\x02\x029:\x03\x02\x02\x02" +
+    ":\v\x03\x02\x02\x02;=\x07\x04\x02\x02<;\x03\x02\x02\x02<=\x03\x02\x02" +
+    "\x02=>\x03\x02\x02\x02>?\x05\x1C\x0F\x02?\r\x03\x02\x02\x02@A\x07\f\x02" +
+    "\x02AB\x05\x14\v\x02BC\x07\r\x02\x02CD\x05\x10\t\x02DE\x07\x06\x02\x02" +
+    "E\x0F\x03\x02\x02\x02FK\x05\x12\n\x02GH\x07\x0E\x02\x02HJ\x05\x12\n\x02" +
+    "IG\x03\x02\x02\x02JM\x03\x02\x02\x02KI\x03\x02\x02\x02KL\x03\x02\x02\x02" +
+    "LW\x03\x02\x02\x02MK\x03\x02\x02\x02NO\x07\x0E\x02\x02OR\x05\x12\n\x02" +
+    "PQ\x07\x0E\x02\x02QS\x05\x12\n\x02RP\x03\x02\x02\x02ST\x03\x02\x02\x02" +
+    "TR\x03\x02\x02\x02TU\x03\x02\x02\x02UW\x03\x02\x02\x02VF\x03\x02\x02\x02" +
+    "VN\x03\x02\x02\x02W\x11\x03\x02\x02\x02X[\x05\x14\v\x02Y[\x05\x16\f\x02" +
+    "ZX\x03\x02\x02\x02ZY\x03\x02\x02\x02[\x13\x03\x02\x02\x02\\]\x05\x1C\x0F" +
+    "\x02]\x15\x03\x02\x02\x02^d\x07\x0F\x02\x02_`\x05\x18\r\x02`a\x07\x06" +
+    "\x02\x02ac\x03\x02\x02\x02b_\x03\x02\x02\x02cf\x03\x02\x02\x02db\x03\x02" +
+    "\x02\x02de\x03\x02\x02\x02eg\x03\x02\x02\x02fd\x03\x02\x02\x02gh\x07\x10" +
+    "\x02\x02h\x17\x03\x02\x02\x02ij\x05\x1A\x0E\x02jk\x07\x04\x02\x02kl\x05" +
+    "\x10\t\x02l\x19\x03\x02\x02\x02mn\x05\x1C\x0F\x02n\x1B\x03\x02\x02\x02" +
+    'op\t\x03\x02\x02p\x1D\x03\x02\x02\x02\v "9<KTVZd';
   public static __ATN: ATN;
   public static get _ATN(): ATN {
     if (!ApiDefParser.__ATN) {
@@ -746,8 +803,8 @@ export class EndpointContext extends ParserRuleContext {
 }
 
 export class EndpointnameContext extends ParserRuleContext {
-  public NAME(): TerminalNode {
-    return this.getToken(ApiDefParser.NAME, 0);
+  public name(): NameContext {
+    return this.getRuleContext(0, NameContext);
   }
   constructor(parent: ParserRuleContext, invokingState: number);
   constructor(parent: ParserRuleContext, invokingState: number) {
@@ -792,8 +849,8 @@ export class RouteContext extends ParserRuleContext {
 
 export class SubpathContext extends ParserRuleContext {
   public _dynamic!: Token;
-  public NAME(): TerminalNode {
-    return this.getToken(ApiDefParser.NAME, 0);
+  public name(): NameContext {
+    return this.getRuleContext(0, NameContext);
   }
   constructor(parent: ParserRuleContext, invokingState: number);
   constructor(parent: ParserRuleContext, invokingState: number) {
@@ -860,8 +917,8 @@ export class SingletypeContext extends ParserRuleContext {
 }
 
 export class TypenameContext extends ParserRuleContext {
-  public NAME(): TerminalNode {
-    return this.getToken(ApiDefParser.NAME, 0);
+  public name(): NameContext {
+    return this.getRuleContext(0, NameContext);
   }
   constructor(parent: ParserRuleContext, invokingState: number);
   constructor(parent: ParserRuleContext, invokingState: number) {
@@ -911,6 +968,20 @@ export class StructfieldContext extends ParserRuleContext {
 }
 
 export class FieldnameContext extends ParserRuleContext {
+  public name(): NameContext {
+    return this.getRuleContext(0, NameContext);
+  }
+  constructor(parent: ParserRuleContext, invokingState: number);
+  constructor(parent: ParserRuleContext, invokingState: number) {
+    super(parent, invokingState);
+  }
+  @Override
+  public get ruleIndex(): number {
+    return ApiDefParser.RULE_fieldname;
+  }
+}
+
+export class NameContext extends ParserRuleContext {
   public NAME(): TerminalNode {
     return this.getToken(ApiDefParser.NAME, 0);
   }
@@ -920,6 +991,6 @@ export class FieldnameContext extends ParserRuleContext {
   }
   @Override
   public get ruleIndex(): number {
-    return ApiDefParser.RULE_fieldname;
+    return ApiDefParser.RULE_name;
   }
 }

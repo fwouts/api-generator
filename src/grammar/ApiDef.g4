@@ -9,7 +9,7 @@ endpoint
     ;
 
 endpointname
-    : NAME
+    : name
     ;
 
 method
@@ -24,7 +24,7 @@ route
     ;
 
 subpath
-    : (dynamic=':')? NAME
+    : (dynamic=':')? name
     ;
 
 typedef
@@ -42,7 +42,7 @@ singletype
     ;
 
 typename
-    : NAME
+    : name
     ;
 
 struct
@@ -54,7 +54,11 @@ structfield
     ;
 
 fieldname
-    : NAME
+    : name
+    ;
+
+name
+    : NAME | 'endpoint' | 'type'
     ;
 
 NAME

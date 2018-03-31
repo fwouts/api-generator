@@ -2,7 +2,10 @@ import "jest";
 import { parse } from "./parser";
 import { resolve } from "./resolver";
 
-const VALID = parse(`
+test("resolver works", () => {
+  expect(
+    resolve(
+      parse(`
 type a = b | string | int;
 
 type b = {
@@ -11,20 +14,11 @@ type b = {
 };
 
 type c = string;
-`);
-
-const UNKNOWN_TYPE = parse(`
-type a = b;
-`);
-
-const DEFINED_TWICE = parse(`
-type a = string;
-type a = string;
-`);
-
-test("resolver works", () => {
-  expect(resolve(VALID)).toEqual({
+`),
+    ),
+  ).toEqual({
     kind: "success",
+    definedEndpoints: {},
     definedTypes: {
       a: ["b", "string", "int"],
       b: {
@@ -36,15 +30,56 @@ test("resolver works", () => {
   });
 });
 
-test("resolver fails with unknown type reference", () => {
-  expect(resolve(UNKNOWN_TYPE)).toEqual({
+test("resolver fails with duplicate endpoint names", () => {
+  expect(
+    resolve(
+      parse(`
+endpoint getUser: GET /users/:id null -> User;
+endpoint getUser: GET /users/:id null -> User;
+
+type User = {
+  name: string;
+};
+`),
+    ),
+  ).toEqual({
     kind: "failure",
-    errors: ["Type a refers to unknown type b."],
+    errors: ["Cannot redefine endpoint getUser."],
   });
 });
 
-test("resolver fails with multiple references", () => {
-  expect(resolve(DEFINED_TWICE)).toEqual({
+test("resolver fails with unknown type reference", () => {
+  expect(
+    resolve(
+      parse(`
+type a = b;
+`),
+    ),
+  ).toEqual({
+    kind: "failure",
+    errors: ["Type a refers to unknown type b."],
+  });
+  expect(
+    resolve(
+      parse(`
+endpoint myendpoint: GET /endpoint a -> b;
+`),
+    ),
+  ).toEqual({
+    kind: "failure",
+    errors: ["No such type a.", "No such type b."],
+  });
+});
+
+test("resolver fails with duplicate definitions", () => {
+  expect(
+    resolve(
+      parse(`
+type a = string;
+type a = string;
+`),
+    ),
+  ).toEqual({
     kind: "failure",
     errors: ["Type a is defined multiple times."],
   });
