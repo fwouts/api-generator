@@ -1,7 +1,30 @@
 grammar ApiDef;
 
 api
-    : typedef* EOF
+    : (endpoint | typedef)* EOF
+    ;
+
+endpoint
+    : 'endpoint' endpointname ':' method route typename '->' typename ';'
+    ;
+
+endpointname
+    : NAME
+    ;
+
+method
+    : 'GET'
+    | 'POST'
+    | 'PUT'
+    | 'DELETE'
+    ;
+
+route
+    : ('/' subpath)+
+    ;
+
+subpath
+    : (dynamic=':')? NAME
     ;
 
 typedef

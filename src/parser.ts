@@ -1,11 +1,25 @@
 import { ANTLRInputStream, CommonTokenStream } from "antlr4ts";
-import { Api, SingleType, Struct, Type, TypeDef, TypeName } from "./defs";
+import {
+  Api,
+  Endpoint,
+  Method,
+  RouteSubpath,
+  SingleType,
+  Struct,
+  Type,
+  TypeDef,
+  TypeName,
+} from "./defs";
 import { ApiDefLexer } from "./grammar/ApiDefLexer";
 import {
   ApiDefParser,
+  EndpointContext,
+  MethodContext,
+  RouteContext,
   SingletypeContext,
   StructContext,
   StructfieldContext,
+  SubpathContext,
   TypedefContext,
   TypenameContext,
   UnionContext,
@@ -60,7 +74,33 @@ export function parse(code: string): Api {
     );
   }
   return {
+    endpoints: result.endpoint().map(read_endpoint),
     typeDefs: result.typedef().map(read_typedef),
+  };
+}
+
+function read_endpoint(endpoint: EndpointContext): Endpoint {
+  return {
+    name: endpoint.endpointname().text,
+    method: read_method(endpoint.method()),
+    route: read_route(endpoint.route()),
+    input: read_typename(endpoint.typename()[0]),
+    output: read_typename(endpoint.typename()[1]),
+  };
+}
+
+function read_method(method: MethodContext): Method {
+  return method.text as Method;
+}
+
+function read_route(route: RouteContext): RouteSubpath[] {
+  return route.subpath().map(read_subpath);
+}
+
+function read_subpath(subpath: SubpathContext): RouteSubpath {
+  return {
+    name: subpath.NAME().text,
+    dynamic: !!subpath._dynamic,
   };
 }
 
