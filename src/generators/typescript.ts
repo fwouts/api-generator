@@ -54,7 +54,7 @@ export function generateTypeScript(typeDefinitions: TypeDefinitions) {
         for (const [fieldName, fieldType] of Object.entries(type)) {
           t.append(fieldName, ": ");
           appendType(fieldType);
-          t.append(",\n");
+          t.append(";\n");
         }
       });
       t.append("}");

@@ -29,8 +29,8 @@ test("generator", () => {
     .toEqual(`export type a = b | string | number;
 
 export interface b {
-  field1: string,
-  field2: a,
+  field1: string;
+  field2: a;
 }
 
 export type c = string;
