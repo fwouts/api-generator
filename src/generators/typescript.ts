@@ -29,17 +29,22 @@ export function generateTypeScript(typeDefinitions: TypeDefinitions) {
         t.append(";\n");
       }
     } else if (type instanceof Array) {
-      // Union.
+      // Union (2+ items) or Array (1 item).
       if (exported) {
         t.append(`export type ${exported} = `);
       }
-      let first = true;
-      for (const possibleType of type) {
-        if (!first) {
-          t.append(" | ");
+      if (type.length === 1) {
+        appendType(type[0]);
+        t.append("[]");
+      } else {
+        let first = true;
+        for (const possibleType of type) {
+          if (!first) {
+            t.append(" | ");
+          }
+          appendType(possibleType);
+          first = false;
         }
-        appendType(possibleType);
-        first = false;
       }
       if (exported) {
         t.append(";\n");

@@ -18,6 +18,8 @@ type b = {
 type c = string;
 
 type d = {};
+
+type e = b[];
 `),
 );
 
@@ -37,5 +39,7 @@ export type c = string;
 
 export interface d {
 }
+
+export type e = b[];
 `);
 });

@@ -28,21 +28,23 @@ subpath
     ;
 
 typedef
-    : 'type' typename '=' union ';'
+    : 'type' typename '=' type ';'
+    ;
+
+type
+    : array
+    | union
+    | struct
+    | typename
+    ;
+
+array
+    : typename '[]'
     ;
 
 union
-    : singletype ('|' singletype)*
-    | '|' singletype ('|' singletype)+
-    ;
-
-singletype
-    : typename
-    | struct
-    ;
-
-typename
-    : name
+    : typename ('|' typename)*
+    | '|' typename ('|' typename)+
     ;
 
 struct
@@ -54,6 +56,10 @@ structfield
     ;
 
 fieldname
+    : name
+    ;
+
+typename
     : name
     ;
 

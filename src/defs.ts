@@ -25,9 +25,11 @@ export interface TypeDef {
   type: Type;
 }
 
-export type Type = Union | SingleType;
+export type Type = ArrayType | UnionType | SingleType;
 
-export type Union = SingleType[];
+export type ArrayType = [SingleType];
+
+export type UnionType = SingleType[];
 
 export type SingleType = TypeName | Struct;
 

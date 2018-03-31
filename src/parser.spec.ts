@@ -50,6 +50,23 @@ export type a = string;
   );
 });
 
+test("parser rejects complex types in arrays or unions", () => {
+  expect(() =>
+    parse(`
+type a = {
+  abc: string
+} | int;
+`),
+  ).toThrow("Syntax error (4:0): missing ';' at '}'.");
+  expect(() =>
+    parse(`
+type a = {
+  abc: string
+}[];
+`),
+  ).toThrow("Syntax error (4:0): missing ';' at '}'.");
+});
+
 test("parser accepts empty API", () => {
   expect(parse(``)).toEqual({
     endpoints: [],
@@ -73,6 +90,8 @@ type b = {
 };
 
 type c = string;
+
+type d = b[];
 
 type type = a;
 
@@ -145,6 +164,10 @@ type endpoint = b;
       {
         name: "c",
         type: "string",
+      },
+      {
+        name: "d",
+        type: ["b"],
       },
       {
         name: "type",

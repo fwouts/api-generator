@@ -4,7 +4,6 @@ import {
   Endpoint,
   Method,
   RouteSubpath,
-  SingleType,
   Struct,
   Type,
   TypeDef,
@@ -13,13 +12,14 @@ import {
 import { ApiDefLexer } from "./grammar/ApiDefLexer";
 import {
   ApiDefParser,
+  ArrayContext,
   EndpointContext,
   MethodContext,
   RouteContext,
-  SingletypeContext,
   StructContext,
   StructfieldContext,
   SubpathContext,
+  TypeContext,
   TypedefContext,
   TypenameContext,
   UnionContext,
@@ -107,26 +107,34 @@ function read_subpath(subpath: SubpathContext): RouteSubpath {
 function read_typedef(typedef: TypedefContext): TypeDef {
   return {
     name: typedef.typename().text,
-    type: read_union(typedef.union()),
+    type: read_type(typedef.type()),
   };
 }
 
+function read_type(type: TypeContext): Type {
+  if (type.array()) {
+    return read_array(type.array()!);
+  } else if (type.union()) {
+    return read_union(type.union()!);
+  } else if (type.struct()) {
+    return read_struct(type.struct()!);
+  } else if (type.typename()) {
+    return read_typename(type.typename()!);
+  } else {
+    throw new Error();
+  }
+}
+
+function read_array(array: ArrayContext): Type {
+  return [read_typename(array.typename())];
+}
+
 function read_union(union: UnionContext): Type {
-  const u = union.singletype().map(read_singletype);
+  const u = union.typename().map(read_typename);
   if (u.length === 1) {
     return u[0];
   } else {
     return u;
-  }
-}
-
-function read_singletype(singletype: SingletypeContext): SingleType {
-  if (singletype.typename()) {
-    return read_typename(singletype.typename()!);
-  } else if (singletype.struct()) {
-    return read_struct(singletype.struct()!);
-  } else {
-    throw new Error();
   }
 }
 

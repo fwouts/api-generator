@@ -92,7 +92,7 @@ export function resolve(api: Api): ResolveResult {
         errors.push(`Type ${name} refers to unknown type ${type}.`);
       }
     } else if (type instanceof Array) {
-      // Union.
+      // Union (2+ items) or Array (1 item).
       for (const possibleType of type) {
         checkType(name, possibleType, errors);
       }
