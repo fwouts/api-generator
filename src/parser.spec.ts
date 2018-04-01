@@ -56,6 +56,37 @@ test("parser accepts empty API", () => {
   });
 });
 
+test("parser ignores comments", () => {
+  expect(
+    parse(`
+type a = string;
+/*
+type b = int;
+*/ type c = string;  /* type d = int; */
+
+// type e = int;
+  // type f = int;
+type g = string;
+  `),
+  ).toEqual({
+    endpoints: [],
+    typeDefs: [
+      {
+        name: "a",
+        type: "string",
+      },
+      {
+        name: "c",
+        type: "string",
+      },
+      {
+        name: "g",
+        type: "string",
+      },
+    ],
+  });
+});
+
 test("parser handles symbols", () => {
   expect(
     parse(`

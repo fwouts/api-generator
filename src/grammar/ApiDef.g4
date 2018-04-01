@@ -83,3 +83,11 @@ LINEBREAK
 WHITESPACE
     : [ \t\u000C]+ -> skip
     ;
+
+BLOCK_COMMENT
+    : '/*' .*? '*/' -> channel(HIDDEN)
+    ;
+
+LINE_COMMENT
+    : '//' ~[\r\n]* -> channel(HIDDEN)
+    ;

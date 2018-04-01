@@ -40,6 +40,8 @@ export class ApiDefParser extends Parser {
   public static readonly NAME = 18;
   public static readonly LINEBREAK = 19;
   public static readonly WHITESPACE = 20;
+  public static readonly BLOCK_COMMENT = 21;
+  public static readonly LINE_COMMENT = 22;
   public static readonly RULE_api = 0;
   public static readonly RULE_endpoint = 1;
   public static readonly RULE_endpointname = 2;
@@ -117,6 +119,8 @@ export class ApiDefParser extends Parser {
     "NAME",
     "LINEBREAK",
     "WHITESPACE",
+    "BLOCK_COMMENT",
+    "LINE_COMMENT",
   ];
   public static readonly VOCABULARY: Vocabulary = new VocabularyImpl(
     ApiDefParser._LITERAL_NAMES,
@@ -1108,7 +1112,7 @@ export class ApiDefParser extends Parser {
     return true;
   }
 
-  public static readonly _serializedATN: string = "\x03\uAF6F\u8320\u479D\uB75C\u4880\u1605\u191C\uAB37\x03\x16\xEC\x04\x02" +
+  public static readonly _serializedATN: string = "\x03\uAF6F\u8320\u479D\uB75C\u4880\u1605\u191C\uAB37\x03\x18\xEC\x04\x02" +
     "\t\x02\x04\x03\t\x03\x04\x04\t\x04\x04\x05\t\x05\x04\x06\t\x06\x04\x07" +
     "\t\x07\x04\b\t\b\x04\t\t\t\x04\n\t\n\x04\v\t\v\x04\f\t\f\x04\r\t\r\x04" +
     "\x0E\t\x0E\x04\x0F\t\x0F\x04\x10\t\x10\x04\x11\t\x11\x03\x02\x07\x02$" +
