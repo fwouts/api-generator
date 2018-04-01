@@ -16,14 +16,14 @@ test("cli generates expected output (types only)", () => {
   const cleanup = testfile(
     "test.api",
     `
-type a = b | string | int;
+type a = b | string | int
 
 type b = {
-  field1: string;
-  field2: a;
-};
+  field1: string
+  field2: a
+}
 
-type c = string;
+type c = string
 `,
   );
   try {
@@ -53,26 +53,26 @@ test("cli generates expected output (client)", () => {
   const cleanup = testfile(
     "test.api",
     `
-endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse;
+endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse
 
 type CreateUserRequest = {
-  name: string;
-  password: string;
-};
+  name: string
+  password: string
+}
 
 type CreateUserResponse = {
-  id: string;
-};
+  id: string
+}
 
-endpoint listUsers: GET /users null -> ListUsersResponse;
+endpoint listUsers: GET /users null -> ListUsersResponse
 
-type ListUsersResponse = User[];
+type ListUsersResponse = User[]
 
-endpoint getUser: GET /users/:id null -> User;
+endpoint getUser: GET /users/:id null -> User
 
 type User = {
-  name: string;
-};
+  name: string
+}
 `,
   );
   try {
@@ -136,26 +136,26 @@ test("cli generates expected output (server)", () => {
   const cleanup = testfile(
     "test.api",
     `
-endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse;
+endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse
 
 type CreateUserRequest = {
-  name: string;
-  password: string;
-};
+  name: string
+  password: string
+}
 
 type CreateUserResponse = {
-  id: string;
-};
+  id: string
+}
 
-endpoint listUsers: GET /users null -> ListUsersResponse;
+endpoint listUsers: GET /users null -> ListUsersResponse
 
-type ListUsersResponse = User[];
+type ListUsersResponse = User[]
 
-endpoint getUser: GET /users/:id null -> User;
+endpoint getUser: GET /users/:id null -> User
 
 type User = {
-  name: string;
-};
+  name: string
+}
 `,
   );
   try {
@@ -231,14 +231,14 @@ test("cli fails with unknown generator", () => {
   const cleanup = testfile(
     "test.api",
     `
-type a = b | string | int;
+type a = b | string | int
 
 type b = {
-  field1: string;
-  field2: a;
-};
+  field1: string
+  field2: a
+}
 
-type c = string;
+type c = string
 `,
   );
   try {

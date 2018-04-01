@@ -1,16 +1,15 @@
 import { ANTLRInputStream, CommonTokenStream } from "antlr4ts";
 import {
   Api,
+  ArrayType,
   Endpoint,
   Method,
   RouteSubpath,
   StructType,
+  SymbolType,
   Type,
   TypeDef,
   TypeName,
-  UnionType,
-  SymbolType,
-  ArrayType,
 } from "./defs";
 import { ApiDefLexer } from "./grammar/ApiDefLexer";
 import {
@@ -22,10 +21,10 @@ import {
   StructContext,
   StructfieldContext,
   SubpathContext,
+  SymbolContext,
   TypeContext,
   TypedefContext,
   TypenameContext,
-  SymbolContext,
 } from "./grammar/ApiDefParser";
 
 export function parse(code: string): Api {
@@ -118,7 +117,10 @@ function read_type(type: TypeContext): Type {
   if (type.array()) {
     return read_array(type.array()!);
   } else if (type.type().length) {
-    return mergeUnions(type.type().map(read_type));
+    return {
+      kind: "union",
+      items: flattenUnion(type.type().map(read_type)),
+    };
   } else if (type.struct()) {
     return read_struct(type.struct()!);
   } else if (type.symbol()) {
@@ -137,23 +139,16 @@ function read_array(array: ArrayContext): ArrayType {
   };
 }
 
-function mergeUnions(types: Type[]): UnionType {
-  if (types.length !== 2) {
-    throw new Error();
-  }
-  const [first, second] = types;
-  if (typeof first !== "string") {
-    if (first.kind === "union") {
-      return {
-        kind: "union",
-        items: first.items.concat(second),
-      };
-    }
-  }
-  return {
-    kind: "union",
-    items: [first, second],
-  };
+function flattenUnion(types: Type[]): Type[] {
+  return types
+    .map(type => {
+      if (typeof type !== "string" && type.kind === "union") {
+        return type.items;
+      } else {
+        return [type];
+      }
+    })
+    .reduce((acc, curr) => acc.concat(curr), []);
 }
 
 function read_struct(struct: StructContext): StructType {

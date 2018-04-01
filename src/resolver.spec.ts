@@ -6,14 +6,14 @@ test("resolver works", () => {
   expect(
     resolve(
       parse(`
-type a = b | string | int | @hello;
+type a = b | string | int | @hello
 
 type b = {
-  field1: string;
-  field2: a;
-};
+  field1: string
+  field2: a
+}
 
-type c = string;
+type c = string
 `),
     ),
   ).toEqual({
@@ -48,12 +48,12 @@ test("resolver fails with duplicate endpoint names", () => {
   expect(
     resolve(
       parse(`
-endpoint getUser: GET /users/:id null -> User;
-endpoint getUser: GET /users/:id null -> User;
+endpoint getUser: GET /users/:id null -> User
+endpoint getUser: GET /users/:id null -> User
 
 type User = {
-  name: string;
-};
+  name: string
+}
 `),
     ),
   ).toEqual({
@@ -66,7 +66,7 @@ test("resolver fails with unknown type reference", () => {
   expect(
     resolve(
       parse(`
-type a = b;
+type a = b
 `),
     ),
   ).toEqual({
@@ -76,7 +76,7 @@ type a = b;
   expect(
     resolve(
       parse(`
-endpoint myendpoint: GET /endpoint a -> b;
+endpoint myendpoint: GET /endpoint a -> b
 `),
     ),
   ).toEqual({
@@ -89,8 +89,8 @@ test("resolver fails with duplicate definitions", () => {
   expect(
     resolve(
       parse(`
-type a = string;
-type a = string;
+type a = string
+type a = string
 `),
     ),
   ).toEqual({

@@ -1,11 +1,11 @@
 grammar ApiDef;
 
 api
-    : (endpoint | typedef)* EOF
+    : LINEBREAK* (endpoint | typedef)* EOF
     ;
 
 endpoint
-    : 'endpoint' endpointname ':' method route typename '->' typename ';'
+    : 'endpoint' LINEBREAK* endpointname LINEBREAK* ':' LINEBREAK* method LINEBREAK* route LINEBREAK* typename LINEBREAK* '->' LINEBREAK* typename separator
     ;
 
 endpointname
@@ -28,15 +28,15 @@ subpath
     ;
 
 typedef
-    : 'type' typename '=' type ';'
+    : 'type' typename LINEBREAK* '=' LINEBREAK* type separator
     ;
 
 type
-    : array
-    | type '|' type
-    | struct
-    | symbol
-    | typename
+    : array LINEBREAK*
+    | type '|' LINEBREAK* type
+    | struct LINEBREAK*
+    | symbol LINEBREAK*
+    | typename LINEBREAK*
     ;
 
 array
@@ -44,7 +44,7 @@ array
     ;
 
 struct
-    : '{' (structfield ';')* '}'
+    : '{' LINEBREAK* (structfield separator)* '}'
     ;
 
 structfield
@@ -67,10 +67,19 @@ name
     : NAME | 'endpoint' | 'type'
     ;
 
+separator
+    : LINEBREAK* ';' LINEBREAK*
+    | LINEBREAK+
+    ;
+
 NAME
     : [a-zA-Z][a-zA-Z0-9]*
     ;
 
-WS
-    : [ \t\u000C\r\n]+ -> skip
+LINEBREAK
+    : [\n\r]
+    ;
+
+WHITESPACE
+    : [ \t\u000C]+ -> skip
     ;

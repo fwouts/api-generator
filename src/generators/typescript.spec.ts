@@ -8,34 +8,34 @@ import { generateTypeScript } from "./typescript";
 
 const API = resolve(
   parse(`
-endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse;
+endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse
 
 type CreateUserRequest = {
-  name: string;
-  password: string;
-  roles: string[];
-};
+  name: string
+  password: string
+  roles: string[]
+}
 
 type CreateUserResponse = {
-  status: @error;
-  message: string;
+  status: @error
+  message: string
 } | {
-  status: @success;
-  id: string;
+  status: @success
+  id: string
   info: {
-    name: string;
-  };
-};
+    name: string
+  }
+}
 
-endpoint listUsers: GET /users null -> ListUsersResponse;
+endpoint listUsers: GET /users null -> ListUsersResponse
 
-type ListUsersResponse = User[];
+type ListUsersResponse = User[]
 
-endpoint getUser: GET /users/:id null -> User;
+endpoint getUser: GET /users/:id null -> User
 
 type User = {
-  name: string;
-};
+  name: string
+}
 `),
 );
 
