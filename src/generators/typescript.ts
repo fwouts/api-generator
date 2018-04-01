@@ -29,8 +29,9 @@ export function generateTypeScript(
       throw new Error(`Base URL should not end with /.`);
     }
     t.append('import axios from "axios";\n\n');
+    t.append(`const URL = \"${options.endpoints.baseUrl}\";\n\n`);
     for (const endpoint of Object.values(endpointDefinitions)) {
-      appendClientEndpoint(options.endpoints.baseUrl, endpoint);
+      appendClientEndpoint(endpoint);
       t.append("\n\n");
     }
   }
@@ -55,7 +56,7 @@ export function generateTypeScript(
   }
   return t.build();
 
-  function appendClientEndpoint(baseUrl: string, endpoint: Endpoint) {
+  function appendClientEndpoint(endpoint: Endpoint) {
     const endpointArguments: string[] = [];
     for (const subpath of endpoint.route) {
       if (subpath.dynamic) {
@@ -69,7 +70,7 @@ export function generateTypeScript(
       )}): Promise<${endpoint.output}> {`,
     );
     t.indented(() => {
-      t.append(`let url = \`${baseUrl}`);
+      t.append(`let url = \`\${URL}`);
       for (const subpath of endpoint.route) {
         if (subpath.dynamic) {
           t.append(`/\${${subpath.name}}`);
@@ -90,7 +91,7 @@ export function generateTypeScript(
 
   function appendServerEndpoint(endpoint: Endpoint) {
     const path = endpoint.route
-      .map(subpath => {
+      .map((subpath) => {
         if (subpath.dynamic) {
           return ":" + subpath.name;
         } else {

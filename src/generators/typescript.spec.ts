@@ -82,8 +82,10 @@ test("generator with client", () => {
     }),
   ).toEqual(`import axios from "axios";
 
+const URL = "https://api.test.com";
+
 export async function createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
-  let url = \`https://api.test.com/users\`;
+  let url = \`\${URL}/users\`;
   const response = await axios.get(url, {
     data: request,
   });
@@ -91,7 +93,7 @@ export async function createUser(request: CreateUserRequest): Promise<CreateUser
 }
 
 export async function listUsers(request: null): Promise<ListUsersResponse> {
-  let url = \`https://api.test.com/users\`;
+  let url = \`\${URL}/users\`;
   const response = await axios.get(url, {
     data: request,
   });
@@ -99,7 +101,7 @@ export async function listUsers(request: null): Promise<ListUsersResponse> {
 }
 
 export async function getUser(id: string, request: null): Promise<User> {
-  let url = \`https://api.test.com/users/\${id}\`;
+  let url = \`\${URL}/users/\${id}\`;
   const response = await axios.get(url, {
     data: request,
   });
