@@ -12,18 +12,11 @@ test("cli fails for unknown commands", () => {
   ]);
 });
 
-test("cli generates expected output (types only)", () => {
+test("cli generates output (types only)", () => {
   const cleanup = testfile(
     "test.api",
     `
-type a = b | string | int
-
-type b = {
-  field1: string
-  field2: a
-}
-
-type c = string
+type a = string;
 `,
   );
   try {
@@ -32,14 +25,7 @@ type c = string
       {
         type: "info",
         messages: [
-          `export type a = b | string | number;
-
-export interface b {
-  field1: string;
-  field2: a;
-}
-
-export type c = string;
+          `export type a = string;
 `,
         ],
       },
@@ -49,30 +35,12 @@ export type c = string;
   }
 });
 
-test("cli generates expected output (client)", () => {
+test("cli generates output (client)", () => {
   const cleanup = testfile(
     "test.api",
     `
-endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse
-
-type CreateUserRequest = {
-  name: string
-  password: string
-}
-
-type CreateUserResponse = {
-  id: string
-}
-
-endpoint listUsers: GET /users void -> ListUsersResponse
-
-type ListUsersResponse = User[]
-
-endpoint getUser: GET /users/:id void -> User
-
-type User = {
-  name: string
-}
+endpoint endpoint: POST /endpoint void -> a
+type a = string;
 `,
   );
   try {
@@ -83,44 +51,17 @@ type User = {
       {
         type: "info",
         messages: [
-          `import axios from "axios";
+          `import axios from \"axios\";
 
-const URL = "https://api.test.com";
+const URL = \"https://api.test.com\";
 
-export async function createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
-  let url = \`\${URL}/users\`;
-  const response = await axios.get(url, {
-    data: request,
-  });
-  return response.data;
-}
-
-export async function listUsers(): Promise<ListUsersResponse> {
-  let url = \`\${URL}/users\`;
+export async function endpoint(): Promise<a> {
+  let url = \`\${URL}/endpoint\`;
   const response = await axios.get(url);
   return response.data;
 }
 
-export async function getUser(id: string): Promise<User> {
-  let url = \`\${URL}/users/\${id}\`;
-  const response = await axios.get(url);
-  return response.data;
-}
-
-export interface CreateUserRequest {
-  name: string;
-  password: string;
-}
-
-export interface CreateUserResponse {
-  id: string;
-}
-
-export type ListUsersResponse = User[];
-
-export interface User {
-  name: string;
-}
+export type a = string;
 `,
         ],
       },
@@ -130,30 +71,12 @@ export interface User {
   }
 });
 
-test("cli generates expected output (server)", () => {
+test("cli generates output (server)", () => {
   const cleanup = testfile(
     "test.api",
     `
-endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse
-
-type CreateUserRequest = {
-  name: string
-  password: string
-}
-
-type CreateUserResponse = {
-  id: string
-}
-
-endpoint listUsers: GET /users void -> ListUsersResponse
-
-type ListUsersResponse = User[]
-
-endpoint getUser: GET /users/:id void -> User
-
-type User = {
-  name: string
-}
+endpoint endpoint: POST /endpoint void -> a
+type a = string;
 `,
   );
   try {
@@ -163,37 +86,15 @@ type User = {
         type: "info",
         messages: [
           `import express from "express";
-import { createUser } from './endpoints/createUser';
-import { listUsers } from './endpoints/listUsers';
-import { getUser } from './endpoints/getUser';
+import { endpoint } from './endpoints/endpoint';
 
 const PORT = 3010;
 
 const app = express();
 
-app.post("/users", async (req, res, next) => {
+app.post(\"/endpoint\", async (req, res, next) => {
   try {
-    const request: CreateUserRequest = req.body;
-    const response: CreateUserResponse = await createUser(request);
-    res.json(response);
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.get("/users", async (req, res, next) => {
-  try {
-    const response: ListUsersResponse = await listUsers();
-    res.json(response);
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.get("/users/:id", async (req, res, next) => {
-  try {
-    const id = req.params["id"];
-    const response: User = await getUser(id);
+    const response: a = await endpoint();
     res.json(response);
   } catch (err) {
     next(err);
@@ -202,20 +103,7 @@ app.get("/users/:id", async (req, res, next) => {
 
 app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
 
-export interface CreateUserRequest {
-  name: string;
-  password: string;
-}
-
-export interface CreateUserResponse {
-  id: string;
-}
-
-export type ListUsersResponse = User[];
-
-export interface User {
-  name: string;
-}
+export type a = string;
 `,
         ],
       },
@@ -239,14 +127,7 @@ test("cli fails with unknown generator", () => {
   const cleanup = testfile(
     "test.api",
     `
-type a = b | string | int
-
-type b = {
-  field1: string
-  field2: a
-}
-
-type c = string
+type a = string;
 `,
   );
   try {
