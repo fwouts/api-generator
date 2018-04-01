@@ -25,7 +25,13 @@ export interface TypeDef {
   type: Type;
 }
 
-export type Type = ArrayType | UnionType | StructType | SymbolType | TypeName;
+export type Type =
+  | ArrayType
+  | UnionType
+  | StructType
+  | OptionalType
+  | SymbolType
+  | TypeName;
 
 export interface ArrayType {
   kind: "array";
@@ -42,6 +48,11 @@ export interface StructType {
   items: {
     [name: string]: Type;
   };
+}
+
+export interface OptionalType {
+  kind: "optional";
+  type: Type;
 }
 
 export interface SymbolType {

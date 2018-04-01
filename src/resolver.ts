@@ -102,6 +102,8 @@ export function resolve(api: Api): ResolveResult {
       for (const [fieldName, fieldType] of Object.entries(type.items)) {
         checkType(`${name}.${fieldName}`, fieldType, errors);
       }
+    } else if (type.kind === "optional") {
+      checkType(name, type.type, errors);
     } else if (type.kind === "symbol") {
       // Always valid.
     } else {

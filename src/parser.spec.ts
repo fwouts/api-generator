@@ -127,6 +127,7 @@ test("parser handles structs", () => {
     parse(`
 type a = {
   myfield: string;
+  myoptionalfield?: a;
 };
   `),
   ).toEqual({
@@ -138,6 +139,10 @@ type a = {
           kind: "struct",
           items: {
             myfield: "string",
+            myoptionalfield: {
+              kind: "optional",
+              type: "a",
+            },
           },
         },
       },
@@ -157,7 +162,7 @@ type a = b | string | int;
 type b = {
   field1: string;
   field2: a[];
-  type: {
+  type?: {
     abc: type;
    } | endpoint;
 };
@@ -240,16 +245,19 @@ type endpoint = b;
               items: "a",
             },
             type: {
-              kind: "union",
-              items: [
-                {
-                  kind: "struct",
-                  items: {
-                    abc: "type",
+              kind: "optional",
+              type: {
+                kind: "union",
+                items: [
+                  {
+                    kind: "struct",
+                    items: {
+                      abc: "type",
+                    },
                   },
-                },
-                "endpoint",
-              ],
+                  "endpoint",
+                ],
+              },
             },
           },
         },

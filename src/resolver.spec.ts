@@ -11,6 +11,7 @@ type a = b | string | int | @hello
 type b = {
   field1: string
   field2: a
+  field3?: b
 }
 
 type c = string
@@ -37,6 +38,10 @@ type c = string
         items: {
           field1: "string",
           field2: "a",
+          field3: {
+            kind: "optional",
+            type: "b",
+          },
         },
       },
       c: "string",

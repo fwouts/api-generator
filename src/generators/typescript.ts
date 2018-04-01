@@ -200,8 +200,13 @@ export function generateTypeScript(
       t.append("{");
       t.indented(() => {
         for (const [fieldName, fieldType] of Object.entries(type.items)) {
-          t.append(fieldName, ": ");
-          appendType(fieldType);
+          if (typeof fieldType !== "string" && fieldType.kind === "optional") {
+            t.append(fieldName, "?: ");
+            appendType(fieldType.type);
+          } else {
+            t.append(fieldName, ": ");
+            appendType(fieldType);
+          }
           t.append(";\n");
         }
       });

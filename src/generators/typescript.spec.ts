@@ -12,7 +12,7 @@ endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse
 
 type CreateUserRequest = {
   name: string
-  password: string
+  password?: string
   roles: string[]
 }
 
@@ -48,7 +48,7 @@ test("generator only types", () => {
   expect(generateTypeScript(API.definedEndpoints, API.definedTypes))
     .toEqual(`export interface CreateUserRequest {
   name: string;
-  password: string;
+  password?: string;
   roles: string[];
 }
 
@@ -113,7 +113,7 @@ export async function deleteUser(id: string): Promise<void> {
 
 export interface CreateUserRequest {
   name: string;
-  password: string;
+  password?: string;
   roles: string[];
 }
 
@@ -199,7 +199,7 @@ app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
 
 export interface CreateUserRequest {
   name: string;
-  password: string;
+  password?: string;
   roles: string[];
 }
 

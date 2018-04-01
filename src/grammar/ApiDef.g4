@@ -48,7 +48,7 @@ struct
     ;
 
 structfield
-    : fieldname ':' type
+    : fieldname (optional='?')? ':' type
     ;
 
 fieldname

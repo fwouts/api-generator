@@ -168,7 +168,15 @@ function read_struct(struct: StructContext): StructType {
 }
 
 function read_structfield(structfield: StructfieldContext): [string, Type] {
-  return [structfield.fieldname().text, read_type(structfield.type())];
+  const name = structfield.fieldname().text;
+  let type = read_type(structfield.type());
+  if (structfield._optional) {
+    type = {
+      kind: "optional",
+      type,
+    };
+  }
+  return [name, type];
 }
 
 function read_symbol(symbol: SymbolContext): SymbolType {
