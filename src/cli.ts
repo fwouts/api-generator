@@ -1,6 +1,6 @@
 import program from "commander";
 import * as fs from "fs";
-import { generateTypeScript } from "./generators/typescript";
+import { generateTypeScript, GenerateOptions } from "./generators/typescript";
 import { parse } from "./parser";
 import { resolve } from "./resolver";
 
@@ -14,36 +14,59 @@ export interface Environment {
 export function cli(env: Environment) {
   program
     .command("generate <target> <source>")
-    .action((target: string, source: string, options: {}) => {
-      try {
-        if (!fs.existsSync(source)) {
-          env.error(`No such file: ${source}.`);
-          return;
-        }
-        const input = fs.readFileSync(source, "utf8");
-        const api = parse(input);
-        switch (target) {
-          case "typescript":
-            const result = resolve(api);
-            if (result.kind === "failure") {
-              env.error(result.errors.join("\n"));
+    .option("-c, --client <base-url>")
+    .option("-s, --server")
+    .action(
+      (
+        target: string,
+        source: string,
+        options: {
+          client?: string;
+          server?: true;
+        },
+      ) => {
+        try {
+          if (!fs.existsSync(source)) {
+            env.error(`No such file: ${source}.`);
+            return;
+          }
+          const input = fs.readFileSync(source, "utf8");
+          const api = parse(input);
+          switch (target) {
+            case "typescript":
+              const result = resolve(api);
+              if (result.kind === "failure") {
+                env.error(result.errors.join("\n"));
+                break;
+              }
+              const generateOptions: GenerateOptions = {};
+              if (options.client) {
+                generateOptions.endpoints = {
+                  kind: "client",
+                  baseUrl: options.client,
+                };
+              } else if (options.server) {
+                generateOptions.endpoints = {
+                  kind: "server",
+                };
+              }
+              const generated = generateTypeScript(
+                result.definedEndpoints,
+                result.definedTypes,
+                generateOptions,
+              );
+              env.info(generated);
               break;
-            }
-            const generated = generateTypeScript(
-              result.definedEndpoints,
-              result.definedTypes,
-            );
-            env.info(generated);
-            break;
-          default:
-            env.error(`Unknown target: ${target}.`);
+            default:
+              env.error(`Unknown target: ${target}.`);
+          }
+        } catch (e) {
+          env.error(e);
         }
-      } catch (e) {
-        env.error(e);
-      }
-    });
+      },
+    );
 
-  program.command("*").action((command) => {
+  program.command("*").action(command => {
     env.error(`Unknown command: ${command}.`);
   });
 
