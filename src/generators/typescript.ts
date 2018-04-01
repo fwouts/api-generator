@@ -226,7 +226,7 @@ export function generateTypeScript(
 
 function primitiveTypeToTypeScript(typeName: PrimitiveType) {
   if (typeName === "bool") {
-    return "bool";
+    return "boolean";
   } else if (typeName === "int") {
     return "number";
   } else if (typeName === "long") {
