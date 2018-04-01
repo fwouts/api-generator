@@ -141,7 +141,7 @@ function read_array(array: ArrayContext): ArrayType {
 
 function flattenUnion(types: Type[]): Type[] {
   return types
-    .map(type => {
+    .map((type) => {
       if (typeof type !== "string" && type.kind === "union") {
         return type.items;
       } else {

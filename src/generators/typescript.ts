@@ -1,5 +1,5 @@
 import TextBuilder from "textbuilder";
-import { Endpoint, Type, PRIMITIVE_TYPES, PrimitiveType } from "../defs";
+import { Endpoint, PRIMITIVE_TYPES, PrimitiveType, Type } from "../defs";
 import { EndpointDefinitions, TypeDefinitions } from "../resolver";
 
 export interface GenerateOptions {
@@ -104,7 +104,7 @@ export function generateTypeScript(
 
   function appendServerEndpoint(endpoint: Endpoint) {
     const path = endpoint.route
-      .map(subpath => {
+      .map((subpath) => {
         if (subpath.dynamic) {
           return ":" + subpath.name;
         } else {

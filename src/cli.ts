@@ -1,6 +1,6 @@
 import program from "commander";
 import * as fs from "fs";
-import { generateTypeScript, GenerateOptions } from "./generators/typescript";
+import { GenerateOptions, generateTypeScript } from "./generators/typescript";
 import { parse } from "./parser";
 import { resolve } from "./resolver";
 
