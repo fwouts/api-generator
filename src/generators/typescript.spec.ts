@@ -144,31 +144,43 @@ test("generator with server", () => {
       },
     }),
   ).toEqual(`import express from "express";
+import { createUser } from './endpoints/createUser';
+import { listUsers } from './endpoints/listUsers';
+import { getUser } from './endpoints/getUser';
 
 const PORT = 3010;
 
 const app = express();
 
-app.post("/users", (req, res) => {
-  const request: CreateUserRequest = req.body;
-  let response: CreateUserResponse;
-  // TODO: Implement.
-  res.json(response);
+app.post("/users", async (req, res, next) => {
+  try {
+    const request: CreateUserRequest = req.body;
+    const response: CreateUserResponse = await createUser(request);
+    res.json(response);
+  } catch (err) {
+    next(err);
+  }
 });
 
-app.get("/users", (req, res) => {
-  const request: null = req.body;
-  let response: ListUsersResponse;
-  // TODO: Implement.
-  res.json(response);
+app.get("/users", async (req, res, next) => {
+  try {
+    const request: null = req.body;
+    const response: ListUsersResponse = await listUsers(request);
+    res.json(response);
+  } catch (err) {
+    next(err);
+  }
 });
 
-app.get("/users/:id", (req, res) => {
-  const id = req.params["id"];
-  const request: null = req.body;
-  let response: User;
-  // TODO: Implement.
-  res.json(response);
+app.get("/users/:id", async (req, res, next) => {
+  try {
+    const id = req.params["id"];
+    const request: null = req.body;
+    const response: User = await getUser(id, request);
+    res.json(response);
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));

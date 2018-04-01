@@ -1,36 +1,41 @@
 import express from "express";
+import { createUser } from "./endpoints/createUser";
+import { getUser } from "./endpoints/getUser";
+import { listUsers } from "./endpoints/listUsers";
 
 const PORT = 3010;
 
 const app = express();
 
-app.post("/users", (req, res) => {
-  const request: CreateUserRequest = req.body;
-  let response: CreateUserResponse;
-  response = {
-    id: "abc",
-  };
-  // TODO: Implement.
-  res.json(response);
+app.post("/users", async (req, res, next) => {
+  try {
+    const request: CreateUserRequest = req.body;
+    const response: CreateUserResponse = await createUser(request);
+    res.json(response);
+  } catch (err) {
+    next(err);
+  }
 });
 
-app.get("/users", (req, res) => {
-  const request: null = req.body;
-  let response: ListUsersResponse;
-  // TODO: Implement.
-  response = [];
-  res.json(response);
+app.get("/users", async (req, res, next) => {
+  try {
+    const request: null = req.body;
+    const response: ListUsersResponse = await listUsers(request);
+    res.json(response);
+  } catch (err) {
+    next(err);
+  }
 });
 
-app.get("/users/:id", (req, res) => {
-  const id = req.params.id;
-  const request: null = req.body;
-  let response: User;
-  // TODO: Implement.
-  response = {
-    name: id,
-  };
-  res.json(response);
+app.get("/users/:id", async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const request: null = req.body;
+    const response: User = await getUser(id, request);
+    res.json(response);
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
@@ -38,11 +43,21 @@ app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 export interface CreateUserRequest {
   name: string;
   password: string;
+  roles: string[];
 }
 
-export interface CreateUserResponse {
-  id: string;
-}
+export type CreateUserResponse =
+  | {
+      status: "error";
+      message: string;
+    }
+  | {
+      status: "success";
+      id: string;
+      info: {
+        name: string;
+      };
+    };
 
 export type ListUsersResponse = User[];
 

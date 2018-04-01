@@ -36,7 +36,13 @@ export function generateTypeScript(
     }
   }
   if (options.endpoints && options.endpoints.kind === "server") {
-    t.append('import express from "express";\n\n');
+    t.append('import express from "express";\n');
+    for (const endpoint of Object.values(endpointDefinitions)) {
+      t.append(
+        `import { ${endpoint.name} } from './endpoints/${endpoint.name}';\n`,
+      );
+    }
+    t.append("\n");
     t.append("const PORT = 3010;\n\n");
     t.append("const app = express();\n\n");
     for (const endpoint of Object.values(endpointDefinitions)) {
@@ -100,19 +106,35 @@ export function generateTypeScript(
       })
       .join("/");
     t.append(
-      `app.${endpoint.method.toLowerCase()}("/${path}", (req, res) => {`,
+      `app.${endpoint.method.toLowerCase()}("/${path}", async (req, res, next) => {`,
     );
     t.indented(() => {
-      // TODO: Double check input structure.
-      for (const subpath of endpoint.route) {
-        if (subpath.dynamic) {
-          t.append(`const ${subpath.name} = req.params["${subpath.name}"];\n`);
+      t.append("try {");
+      t.indented(() => {
+        // TODO: Double check input structure.
+        const args: string[] = [];
+        for (const subpath of endpoint.route) {
+          if (subpath.dynamic) {
+            t.append(
+              `const ${subpath.name} = req.params["${subpath.name}"];\n`,
+            );
+            args.push(subpath.name);
+          }
         }
-      }
-      t.append(`const request: ${endpoint.input} = req.body;\n`);
-      t.append(`let response: ${endpoint.output};\n`);
-      t.append("// TODO: Implement.\n");
-      t.append(`res.json(response);\n`);
+        args.push("request");
+        t.append(`const request: ${endpoint.input} = req.body;\n`);
+        t.append(
+          `const response: ${endpoint.output} = await ${
+            endpoint.name
+          }(${args.join(", ")});\n`,
+        );
+        t.append(`res.json(response);\n`);
+      });
+      t.append("} catch (err) {");
+      t.indented(() => {
+        t.append("next(err);");
+      });
+      t.append("}");
     });
     t.append("});");
   }
