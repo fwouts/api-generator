@@ -155,7 +155,6 @@ export function generateTypeScript(
         t.append(";\n");
       }
     } else if (type.kind === "struct") {
-      // Struct.
       if (exported) {
         t.append(`export interface ${exported} `);
       }
@@ -170,6 +169,14 @@ export function generateTypeScript(
       t.append("}");
       if (exported) {
         t.append("\n");
+      }
+    } else if (type.kind === "symbol") {
+      if (exported) {
+        t.append(`export type ${exported} = `);
+      }
+      t.append(`'${type.value}'`);
+      if (exported) {
+        t.append(";\n");
       }
     } else {
       throw new Error();

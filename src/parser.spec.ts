@@ -21,7 +21,7 @@ type a = b;
 type b =
   `),
   ).toThrow(
-    "Syntax error (4:2): mismatched input '<EOF>' expecting {'endpoint', 'type', '{', NAME}.",
+    "Syntax error (4:2): mismatched input '<EOF>' expecting {'endpoint', 'type', '{', '@', NAME}.",
   );
   expect(() =>
     parse(`
@@ -71,6 +71,34 @@ test("parser accepts empty API", () => {
   expect(parse(``)).toEqual({
     endpoints: [],
     typeDefs: [],
+  });
+});
+
+test("parser handles symbols", () => {
+  expect(
+    parse(`
+type a = @success | @failure;
+  `),
+  ).toEqual({
+    endpoints: [],
+    typeDefs: [
+      {
+        name: "a",
+        type: {
+          kind: "union",
+          items: [
+            {
+              kind: "symbol",
+              value: "success",
+            },
+            {
+              kind: "symbol",
+              value: "failure",
+            },
+          ],
+        },
+      },
+    ],
   });
 });
 

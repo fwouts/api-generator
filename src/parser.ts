@@ -4,11 +4,13 @@ import {
   Endpoint,
   Method,
   RouteSubpath,
-  Struct,
+  StructType,
   Type,
   TypeDef,
   TypeName,
   UnionType,
+  SymbolType,
+  ArrayType,
 } from "./defs";
 import { ApiDefLexer } from "./grammar/ApiDefLexer";
 import {
@@ -23,6 +25,7 @@ import {
   TypeContext,
   TypedefContext,
   TypenameContext,
+  SymbolContext,
 } from "./grammar/ApiDefParser";
 
 export function parse(code: string): Api {
@@ -118,6 +121,8 @@ function read_type(type: TypeContext): Type {
     return mergeUnions(type.type().map(read_type));
   } else if (type.struct()) {
     return read_struct(type.struct()!);
+  } else if (type.symbol()) {
+    return read_symbol(type.symbol()!);
   } else if (type.typename()) {
     return read_typename(type.typename()!);
   } else {
@@ -125,7 +130,7 @@ function read_type(type: TypeContext): Type {
   }
 }
 
-function read_array(array: ArrayContext): Type {
+function read_array(array: ArrayContext): ArrayType {
   return {
     kind: "array",
     items: read_typename(array.typename()),
@@ -151,7 +156,7 @@ function mergeUnions(types: Type[]): UnionType {
   };
 }
 
-function read_struct(struct: StructContext): Struct {
+function read_struct(struct: StructContext): StructType {
   const items = struct
     .structfield()
     .map(read_structfield)
@@ -169,6 +174,13 @@ function read_struct(struct: StructContext): Struct {
 
 function read_structfield(structfield: StructfieldContext): [string, Type] {
   return [structfield.fieldname().text, read_type(structfield.type())];
+}
+
+function read_symbol(symbol: SymbolContext): SymbolType {
+  return {
+    kind: "symbol",
+    value: symbol.name().text,
+  };
 }
 
 function read_typename(typename: TypenameContext): TypeName {

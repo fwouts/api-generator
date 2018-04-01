@@ -35,8 +35,9 @@ export class ApiDefParser extends Parser {
   public static readonly T__12 = 13;
   public static readonly T__13 = 14;
   public static readonly T__14 = 15;
-  public static readonly NAME = 16;
-  public static readonly WS = 17;
+  public static readonly T__15 = 16;
+  public static readonly NAME = 17;
+  public static readonly WS = 18;
   public static readonly RULE_api = 0;
   public static readonly RULE_endpoint = 1;
   public static readonly RULE_endpointname = 2;
@@ -50,7 +51,8 @@ export class ApiDefParser extends Parser {
   public static readonly RULE_structfield = 10;
   public static readonly RULE_fieldname = 11;
   public static readonly RULE_typename = 12;
-  public static readonly RULE_name = 13;
+  public static readonly RULE_symbol = 13;
+  public static readonly RULE_name = 14;
   public static readonly ruleNames: string[] = [
     "api",
     "endpoint",
@@ -65,6 +67,7 @@ export class ApiDefParser extends Parser {
     "structfield",
     "fieldname",
     "typename",
+    "symbol",
     "name",
   ];
 
@@ -85,8 +88,10 @@ export class ApiDefParser extends Parser {
     "'[]'",
     "'{'",
     "'}'",
+    "'@'",
   ];
   private static readonly _SYMBOLIC_NAMES: (string | undefined)[] = [
+    undefined,
     undefined,
     undefined,
     undefined,
@@ -145,23 +150,23 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 32;
+        this.state = 34;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
         while (_la === ApiDefParser.T__0 || _la === ApiDefParser.T__9) {
           {
-            this.state = 30;
+            this.state = 32;
             this._errHandler.sync(this);
             switch (this._input.LA(1)) {
               case ApiDefParser.T__0:
                 {
-                  this.state = 28;
+                  this.state = 30;
                   this.endpoint();
                 }
                 break;
               case ApiDefParser.T__9:
                 {
-                  this.state = 29;
+                  this.state = 31;
                   this.typedef();
                 }
                 break;
@@ -169,11 +174,11 @@ export class ApiDefParser extends Parser {
                 throw new NoViableAltException(this);
             }
           }
-          this.state = 34;
+          this.state = 36;
           this._errHandler.sync(this);
           _la = this._input.LA(1);
         }
-        this.state = 35;
+        this.state = 37;
         this.match(ApiDefParser.EOF);
       }
     } catch (re) {
@@ -196,23 +201,23 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 37;
-        this.match(ApiDefParser.T__0);
-        this.state = 38;
-        this.endpointname();
         this.state = 39;
-        this.match(ApiDefParser.T__1);
+        this.match(ApiDefParser.T__0);
         this.state = 40;
-        this.method();
+        this.endpointname();
         this.state = 41;
-        this.route();
+        this.match(ApiDefParser.T__1);
         this.state = 42;
-        this.typename();
+        this.method();
         this.state = 43;
-        this.match(ApiDefParser.T__2);
+        this.route();
         this.state = 44;
         this.typename();
         this.state = 45;
+        this.match(ApiDefParser.T__2);
+        this.state = 46;
+        this.typename();
+        this.state = 47;
         this.match(ApiDefParser.T__3);
       }
     } catch (re) {
@@ -238,7 +243,7 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 47;
+        this.state = 49;
         this.name();
       }
     } catch (re) {
@@ -262,7 +267,7 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 49;
+        this.state = 51;
         _la = this._input.LA(1);
         if (
           !(
@@ -306,19 +311,19 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 53;
+        this.state = 55;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
         do {
           {
             {
-              this.state = 51;
+              this.state = 53;
               this.match(ApiDefParser.T__8);
-              this.state = 52;
+              this.state = 54;
               this.subpath();
             }
           }
-          this.state = 55;
+          this.state = 57;
           this._errHandler.sync(this);
           _la = this._input.LA(1);
         } while (_la === ApiDefParser.T__8);
@@ -344,17 +349,17 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 58;
+        this.state = 60;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
         if (_la === ApiDefParser.T__1) {
           {
-            this.state = 57;
+            this.state = 59;
             _localctx._dynamic = this.match(ApiDefParser.T__1);
           }
         }
 
-        this.state = 60;
+        this.state = 62;
         this.name();
       }
     } catch (re) {
@@ -377,15 +382,15 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 62;
-        this.match(ApiDefParser.T__9);
-        this.state = 63;
-        this.typename();
         this.state = 64;
-        this.match(ApiDefParser.T__10);
+        this.match(ApiDefParser.T__9);
         this.state = 65;
-        this.type(0);
+        this.typename();
         this.state = 66;
+        this.match(ApiDefParser.T__10);
+        this.state = 67;
+        this.type(0);
+        this.state = 68;
         this.match(ApiDefParser.T__3);
       }
     } catch (re) {
@@ -419,32 +424,39 @@ export class ApiDefParser extends Parser {
       let _alt: number;
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 72;
+        this.state = 75;
         this._errHandler.sync(this);
         switch (this.interpreter.adaptivePredict(this._input, 4, this._ctx)) {
           case 1:
             {
-              this.state = 69;
+              this.state = 71;
               this.array();
             }
             break;
 
           case 2:
             {
-              this.state = 70;
+              this.state = 72;
               this.struct();
             }
             break;
 
           case 3:
             {
-              this.state = 71;
+              this.state = 73;
+              this.symbol();
+            }
+            break;
+
+          case 4:
+            {
+              this.state = 74;
               this.typename();
             }
             break;
         }
         this._ctx._stop = this._input.tryLT(-1);
-        this.state = 79;
+        this.state = 82;
         this._errHandler.sync(this);
         _alt = this.interpreter.adaptivePredict(this._input, 5, this._ctx);
         while (_alt !== 2 && _alt !== ATN.INVALID_ALT_NUMBER) {
@@ -458,20 +470,20 @@ export class ApiDefParser extends Parser {
                   _startState,
                   ApiDefParser.RULE_type,
                 );
-                this.state = 74;
-                if (!this.precpred(this._ctx, 3))
+                this.state = 77;
+                if (!this.precpred(this._ctx, 4))
                   throw new FailedPredicateException(
                     this,
-                    "this.precpred(this._ctx, 3)",
+                    "this.precpred(this._ctx, 4)",
                   );
-                this.state = 75;
+                this.state = 78;
                 this.match(ApiDefParser.T__11);
-                this.state = 76;
-                this.type(4);
+                this.state = 79;
+                this.type(5);
               }
             }
           }
-          this.state = 81;
+          this.state = 84;
           this._errHandler.sync(this);
           _alt = this.interpreter.adaptivePredict(this._input, 5, this._ctx);
         }
@@ -496,9 +508,9 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 82;
+        this.state = 85;
         this.typename();
-        this.state = 83;
+        this.state = 86;
         this.match(ApiDefParser.T__12);
       }
     } catch (re) {
@@ -522,9 +534,9 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 85;
+        this.state = 88;
         this.match(ApiDefParser.T__13);
-        this.state = 91;
+        this.state = 94;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
         while (
@@ -537,17 +549,17 @@ export class ApiDefParser extends Parser {
         ) {
           {
             {
-              this.state = 86;
+              this.state = 89;
               this.structfield();
-              this.state = 87;
+              this.state = 90;
               this.match(ApiDefParser.T__3);
             }
           }
-          this.state = 93;
+          this.state = 96;
           this._errHandler.sync(this);
           _la = this._input.LA(1);
         }
-        this.state = 94;
+        this.state = 97;
         this.match(ApiDefParser.T__14);
       }
     } catch (re) {
@@ -573,11 +585,11 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 96;
+        this.state = 99;
         this.fieldname();
-        this.state = 97;
+        this.state = 100;
         this.match(ApiDefParser.T__1);
-        this.state = 98;
+        this.state = 101;
         this.type(0);
       }
     } catch (re) {
@@ -603,7 +615,7 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 100;
+        this.state = 103;
         this.name();
       }
     } catch (re) {
@@ -626,7 +638,32 @@ export class ApiDefParser extends Parser {
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 102;
+        this.state = 105;
+        this.name();
+      }
+    } catch (re) {
+      if (re instanceof RecognitionException) {
+        _localctx.exception = re;
+        this._errHandler.reportError(this, re);
+        this._errHandler.recover(this, re);
+      } else {
+        throw re;
+      }
+    } finally {
+      this.exitRule();
+    }
+    return _localctx;
+  }
+
+  public symbol(): SymbolContext {
+    let _localctx: SymbolContext = new SymbolContext(this._ctx, this.state);
+    this.enterRule(_localctx, 26, ApiDefParser.RULE_symbol);
+    try {
+      this.enterOuterAlt(_localctx, 1);
+      {
+        this.state = 107;
+        this.match(ApiDefParser.T__15);
+        this.state = 108;
         this.name();
       }
     } catch (re) {
@@ -645,12 +682,12 @@ export class ApiDefParser extends Parser {
 
   public name(): NameContext {
     let _localctx: NameContext = new NameContext(this._ctx, this.state);
-    this.enterRule(_localctx, 26, ApiDefParser.RULE_name);
+    this.enterRule(_localctx, 28, ApiDefParser.RULE_name);
     let _la: number;
     try {
       this.enterOuterAlt(_localctx, 1);
       {
-        this.state = 104;
+        this.state = 110;
         _la = this._input.LA(1);
         if (
           !(
@@ -700,51 +737,54 @@ export class ApiDefParser extends Parser {
   private type_sempred(_localctx: TypeContext, predIndex: number): boolean {
     switch (predIndex) {
       case 0:
-        return this.precpred(this._ctx, 3);
+        return this.precpred(this._ctx, 4);
     }
     return true;
   }
 
-  public static readonly _serializedATN: string = "\x03\uAF6F\u8320\u479D\uB75C\u4880\u1605\u191C\uAB37\x03\x13m\x04\x02" +
+  public static readonly _serializedATN: string = "\x03\uAF6F\u8320\u479D\uB75C\u4880\u1605\u191C\uAB37\x03\x14s\x04\x02" +
     "\t\x02\x04\x03\t\x03\x04\x04\t\x04\x04\x05\t\x05\x04\x06\t\x06\x04\x07" +
     "\t\x07\x04\b\t\b\x04\t\t\t\x04\n\t\n\x04\v\t\v\x04\f\t\f\x04\r\t\r\x04" +
-    "\x0E\t\x0E\x04\x0F\t\x0F\x03\x02\x03\x02\x07\x02!\n\x02\f\x02\x0E\x02" +
-    "$\v\x02\x03\x02\x03\x02\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03" +
-    "\x03\x03\x03\x03\x03\x03\x03\x03\x03\x04\x03\x04\x03\x05\x03\x05\x03\x06" +
-    "\x03\x06\x06\x068\n\x06\r\x06\x0E\x069\x03\x07\x05\x07=\n\x07\x03\x07" +
-    "\x03\x07\x03\b\x03\b\x03\b\x03\b\x03\b\x03\b\x03\t\x03\t\x03\t\x03\t\x05" +
-    "\tK\n\t\x03\t\x03\t\x03\t\x07\tP\n\t\f\t\x0E\tS\v\t\x03\n\x03\n\x03\n" +
-    "\x03\v\x03\v\x03\v\x03\v\x07\v\\\n\v\f\v\x0E\v_\v\v\x03\v\x03\v\x03\f" +
-    "\x03\f\x03\f\x03\f\x03\r\x03\r\x03\x0E\x03\x0E\x03\x0F\x03\x0F\x03\x0F" +
-    "\x02\x02\x03\x10\x10\x02\x02\x04\x02\x06\x02\b\x02\n\x02\f\x02\x0E\x02" +
-    "\x10\x02\x12\x02\x14\x02\x16\x02\x18\x02\x1A\x02\x1C\x02\x02\x04\x03\x02" +
-    "\x07\n\x05\x02\x03\x03\f\f\x12\x12f\x02\"\x03\x02\x02\x02\x04'\x03\x02" +
-    "\x02\x02\x061\x03\x02\x02\x02\b3\x03\x02\x02\x02\n7\x03\x02\x02\x02\f" +
-    "<\x03\x02\x02\x02\x0E@\x03\x02\x02\x02\x10J\x03\x02\x02\x02\x12T\x03\x02" +
-    "\x02\x02\x14W\x03\x02\x02\x02\x16b\x03\x02\x02\x02\x18f\x03\x02\x02\x02" +
-    "\x1Ah\x03\x02\x02\x02\x1Cj\x03\x02\x02\x02\x1E!\x05\x04\x03\x02\x1F!\x05" +
-    "\x0E\b\x02 \x1E\x03\x02\x02\x02 \x1F\x03\x02\x02\x02!$\x03\x02\x02\x02" +
-    '" \x03\x02\x02\x02"#\x03\x02\x02\x02#%\x03\x02\x02\x02$"\x03\x02\x02' +
-    "\x02%&\x07\x02\x02\x03&\x03\x03\x02\x02\x02'(\x07\x03\x02\x02()\x05\x06" +
-    "\x04\x02)*\x07\x04\x02\x02*+\x05\b\x05\x02+,\x05\n\x06\x02,-\x05\x1A\x0E" +
-    "\x02-.\x07\x05\x02\x02./\x05\x1A\x0E\x02/0\x07\x06\x02\x020\x05\x03\x02" +
-    "\x02\x0212\x05\x1C\x0F\x022\x07\x03\x02\x02\x0234\t\x02\x02\x024\t\x03" +
-    "\x02\x02\x0256\x07\v\x02\x0268\x05\f\x07\x0275\x03\x02\x02\x0289\x03\x02" +
-    "\x02\x0297\x03\x02\x02\x029:\x03\x02\x02\x02:\v\x03\x02\x02\x02;=\x07" +
-    "\x04\x02\x02<;\x03\x02\x02\x02<=\x03\x02\x02\x02=>\x03\x02\x02\x02>?\x05" +
-    "\x1C\x0F\x02?\r\x03\x02\x02\x02@A\x07\f\x02\x02AB\x05\x1A\x0E\x02BC\x07" +
-    "\r\x02\x02CD\x05\x10\t\x02DE\x07\x06\x02\x02E\x0F\x03\x02\x02\x02FG\b" +
-    "\t\x01\x02GK\x05\x12\n\x02HK\x05\x14\v\x02IK\x05\x1A\x0E\x02JF\x03\x02" +
-    "\x02\x02JH\x03\x02\x02\x02JI\x03\x02\x02\x02KQ\x03\x02\x02\x02LM\f\x05" +
-    "\x02\x02MN\x07\x0E\x02\x02NP\x05\x10\t\x06OL\x03\x02\x02\x02PS\x03\x02" +
-    "\x02\x02QO\x03\x02\x02\x02QR\x03\x02\x02\x02R\x11\x03\x02\x02\x02SQ\x03" +
-    "\x02\x02\x02TU\x05\x1A\x0E\x02UV\x07\x0F\x02\x02V\x13\x03\x02\x02\x02" +
-    "W]\x07\x10\x02\x02XY\x05\x16\f\x02YZ\x07\x06\x02\x02Z\\\x03\x02\x02\x02" +
-    "[X\x03\x02\x02\x02\\_\x03\x02\x02\x02][\x03\x02\x02\x02]^\x03\x02\x02" +
-    "\x02^`\x03\x02\x02\x02_]\x03\x02\x02\x02`a\x07\x11\x02\x02a\x15\x03\x02" +
-    "\x02\x02bc\x05\x18\r\x02cd\x07\x04\x02\x02de\x05\x10\t\x02e\x17\x03\x02" +
-    "\x02\x02fg\x05\x1C\x0F\x02g\x19\x03\x02\x02\x02hi\x05\x1C\x0F\x02i\x1B" +
-    '\x03\x02\x02\x02jk\t\x03\x02\x02k\x1D\x03\x02\x02\x02\t "9<JQ]';
+    "\x0E\t\x0E\x04\x0F\t\x0F\x04\x10\t\x10\x03\x02\x03\x02\x07\x02#\n\x02" +
+    "\f\x02\x0E\x02&\v\x02\x03\x02\x03\x02\x03\x03\x03\x03\x03\x03\x03\x03" +
+    "\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x04\x03\x04\x03\x05" +
+    "\x03\x05\x03\x06\x03\x06\x06\x06:\n\x06\r\x06\x0E\x06;\x03\x07\x05\x07" +
+    "?\n\x07\x03\x07\x03\x07\x03\b\x03\b\x03\b\x03\b\x03\b\x03\b\x03\t\x03" +
+    "\t\x03\t\x03\t\x03\t\x05\tN\n\t\x03\t\x03\t\x03\t\x07\tS\n\t\f\t\x0E\t" +
+    "V\v\t\x03\n\x03\n\x03\n\x03\v\x03\v\x03\v\x03\v\x07\v_\n\v\f\v\x0E\vb" +
+    "\v\v\x03\v\x03\v\x03\f\x03\f\x03\f\x03\f\x03\r\x03\r\x03\x0E\x03\x0E\x03" +
+    "\x0F\x03\x0F\x03\x0F\x03\x10\x03\x10\x03\x10\x02\x02\x03\x10\x11\x02\x02" +
+    "\x04\x02\x06\x02\b\x02\n\x02\f\x02\x0E\x02\x10\x02\x12\x02\x14\x02\x16" +
+    "\x02\x18\x02\x1A\x02\x1C\x02\x1E\x02\x02\x04\x03\x02\x07\n\x05\x02\x03" +
+    "\x03\f\f\x13\x13l\x02$\x03\x02\x02\x02\x04)\x03\x02\x02\x02\x063\x03\x02" +
+    "\x02\x02\b5\x03\x02\x02\x02\n9\x03\x02\x02\x02\f>\x03\x02\x02\x02\x0E" +
+    "B\x03\x02\x02\x02\x10M\x03\x02\x02\x02\x12W\x03\x02\x02\x02\x14Z\x03\x02" +
+    "\x02\x02\x16e\x03\x02\x02\x02\x18i\x03\x02\x02\x02\x1Ak\x03\x02\x02\x02" +
+    "\x1Cm\x03\x02\x02\x02\x1Ep\x03\x02\x02\x02 #\x05\x04\x03\x02!#\x05\x0E" +
+    '\b\x02" \x03\x02\x02\x02"!\x03\x02\x02\x02#&\x03\x02\x02\x02$"\x03' +
+    "\x02\x02\x02$%\x03\x02\x02\x02%'\x03\x02\x02\x02&$\x03\x02\x02\x02'" +
+    "(\x07\x02\x02\x03(\x03\x03\x02\x02\x02)*\x07\x03\x02\x02*+\x05\x06\x04" +
+    "\x02+,\x07\x04\x02\x02,-\x05\b\x05\x02-.\x05\n\x06\x02./\x05\x1A\x0E\x02" +
+    "/0\x07\x05\x02\x0201\x05\x1A\x0E\x0212\x07\x06\x02\x022\x05\x03\x02\x02" +
+    "\x0234\x05\x1E\x10\x024\x07\x03\x02\x02\x0256\t\x02\x02\x026\t\x03\x02" +
+    "\x02\x0278\x07\v\x02\x028:\x05\f\x07\x0297\x03\x02\x02\x02:;\x03\x02\x02" +
+    "\x02;9\x03\x02\x02\x02;<\x03\x02\x02\x02<\v\x03\x02\x02\x02=?\x07\x04" +
+    "\x02\x02>=\x03\x02\x02\x02>?\x03\x02\x02\x02?@\x03\x02\x02\x02@A\x05\x1E" +
+    "\x10\x02A\r\x03\x02\x02\x02BC\x07\f\x02\x02CD\x05\x1A\x0E\x02DE\x07\r" +
+    "\x02\x02EF\x05\x10\t\x02FG\x07\x06\x02\x02G\x0F\x03\x02\x02\x02HI\b\t" +
+    "\x01\x02IN\x05\x12\n\x02JN\x05\x14\v\x02KN\x05\x1C\x0F\x02LN\x05\x1A\x0E" +
+    "\x02MH\x03\x02\x02\x02MJ\x03\x02\x02\x02MK\x03\x02\x02\x02ML\x03\x02\x02" +
+    "\x02NT\x03\x02\x02\x02OP\f\x06\x02\x02PQ\x07\x0E\x02\x02QS\x05\x10\t\x07" +
+    "RO\x03\x02\x02\x02SV\x03\x02\x02\x02TR\x03\x02\x02\x02TU\x03\x02\x02\x02" +
+    "U\x11\x03\x02\x02\x02VT\x03\x02\x02\x02WX\x05\x1A\x0E\x02XY\x07\x0F\x02" +
+    "\x02Y\x13\x03\x02\x02\x02Z`\x07\x10\x02\x02[\\\x05\x16\f\x02\\]\x07\x06" +
+    "\x02\x02]_\x03\x02\x02\x02^[\x03\x02\x02\x02_b\x03\x02\x02\x02`^\x03\x02" +
+    "\x02\x02`a\x03\x02\x02\x02ac\x03\x02\x02\x02b`\x03\x02\x02\x02cd\x07\x11" +
+    "\x02\x02d\x15\x03\x02\x02\x02ef\x05\x18\r\x02fg\x07\x04\x02\x02gh\x05" +
+    "\x10\t\x02h\x17\x03\x02\x02\x02ij\x05\x1E\x10\x02j\x19\x03\x02\x02\x02" +
+    "kl\x05\x1E\x10\x02l\x1B\x03\x02\x02\x02mn\x07\x12\x02\x02no\x05\x1E\x10" +
+    '\x02o\x1D\x03\x02\x02\x02pq\t\x03\x02\x02q\x1F\x03\x02\x02\x02\t"$;>' +
+    "MT`";
   public static __ATN: ATN;
   public static get _ATN(): ATN {
     if (!ApiDefParser.__ATN) {
@@ -911,6 +951,9 @@ export class TypeContext extends ParserRuleContext {
   public struct(): StructContext | undefined {
     return this.tryGetRuleContext(0, StructContext);
   }
+  public symbol(): SymbolContext | undefined {
+    return this.tryGetRuleContext(0, SymbolContext);
+  }
   public typename(): TypenameContext | undefined {
     return this.tryGetRuleContext(0, TypenameContext);
   }
@@ -1000,6 +1043,20 @@ export class TypenameContext extends ParserRuleContext {
   @Override
   public get ruleIndex(): number {
     return ApiDefParser.RULE_typename;
+  }
+}
+
+export class SymbolContext extends ParserRuleContext {
+  public name(): NameContext {
+    return this.getRuleContext(0, NameContext);
+  }
+  constructor(parent: ParserRuleContext, invokingState: number);
+  constructor(parent: ParserRuleContext, invokingState: number) {
+    super(parent, invokingState);
+  }
+  @Override
+  public get ruleIndex(): number {
+    return ApiDefParser.RULE_symbol;
   }
 }
 

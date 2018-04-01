@@ -17,6 +17,10 @@ type CreateUserRequest = {
 };
 
 type CreateUserResponse = {
+  status: @error;
+  message: string;
+} | {
+  status: @success;
   id: string;
   info: {
     name: string;
@@ -46,12 +50,16 @@ test("generator only types", () => {
   roles: string[];
 }
 
-export interface CreateUserResponse {
+export type CreateUserResponse = {
+  status: 'error';
+  message: string;
+} | {
+  status: 'success';
   id: string;
   info: {
     name: string;
   };
-}
+};
 
 export type ListUsersResponse = User[];
 
@@ -104,12 +112,16 @@ export interface CreateUserRequest {
   roles: string[];
 }
 
-export interface CreateUserResponse {
+export type CreateUserResponse = {
+  status: 'error';
+  message: string;
+} | {
+  status: 'success';
   id: string;
   info: {
     name: string;
   };
-}
+};
 
 export type ListUsersResponse = User[];
 
@@ -165,12 +177,16 @@ export interface CreateUserRequest {
   roles: string[];
 }
 
-export interface CreateUserResponse {
+export type CreateUserResponse = {
+  status: 'error';
+  message: string;
+} | {
+  status: 'success';
   id: string;
   info: {
     name: string;
   };
-}
+};
 
 export type ListUsersResponse = User[];
 

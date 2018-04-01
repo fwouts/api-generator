@@ -35,6 +35,7 @@ type
     : array
     | type '|' type
     | struct
+    | symbol
     | typename
     ;
 
@@ -56,6 +57,10 @@ fieldname
 
 typename
     : name
+    ;
+
+symbol
+    : '@' name
     ;
 
 name

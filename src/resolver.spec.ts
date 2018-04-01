@@ -6,7 +6,7 @@ test("resolver works", () => {
   expect(
     resolve(
       parse(`
-type a = b | string | int;
+type a = b | string | int | @hello;
 
 type b = {
   field1: string;
@@ -22,7 +22,15 @@ type c = string;
     definedTypes: {
       a: {
         kind: "union",
-        items: ["b", "string", "int"],
+        items: [
+          "b",
+          "string",
+          "int",
+          {
+            kind: "symbol",
+            value: "hello",
+          },
+        ],
       },
       b: {
         kind: "struct",
