@@ -27,15 +27,17 @@ type CreateUserResponse = {
   }
 }
 
-endpoint listUsers: GET /users null -> ListUsersResponse
+endpoint listUsers: GET /users void -> ListUsersResponse
 
 type ListUsersResponse = User[]
 
-endpoint getUser: GET /users/:id null -> User
+endpoint getUser: GET /users/:id void -> User
 
 type User = {
   name: string
 }
+
+endpoint deleteUser: DELETE /users/:id void -> void
 `),
 );
 
@@ -92,20 +94,21 @@ export async function createUser(request: CreateUserRequest): Promise<CreateUser
   return response.data;
 }
 
-export async function listUsers(request: null): Promise<ListUsersResponse> {
+export async function listUsers(): Promise<ListUsersResponse> {
   let url = \`\${URL}/users\`;
-  const response = await axios.get(url, {
-    data: request,
-  });
+  const response = await axios.get(url);
   return response.data;
 }
 
-export async function getUser(id: string, request: null): Promise<User> {
+export async function getUser(id: string): Promise<User> {
   let url = \`\${URL}/users/\${id}\`;
-  const response = await axios.get(url, {
-    data: request,
-  });
+  const response = await axios.get(url);
   return response.data;
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  let url = \`\${URL}/users/\${id}\`;
+  await axios.get(url);
 }
 
 export interface CreateUserRequest {
@@ -147,6 +150,7 @@ test("generator with server", () => {
 import { createUser } from './endpoints/createUser';
 import { listUsers } from './endpoints/listUsers';
 import { getUser } from './endpoints/getUser';
+import { deleteUser } from './endpoints/deleteUser';
 
 const PORT = 3010;
 
@@ -164,8 +168,7 @@ app.post("/users", async (req, res, next) => {
 
 app.get("/users", async (req, res, next) => {
   try {
-    const request: null = req.body;
-    const response: ListUsersResponse = await listUsers(request);
+    const response: ListUsersResponse = await listUsers();
     res.json(response);
   } catch (err) {
     next(err);
@@ -175,9 +178,18 @@ app.get("/users", async (req, res, next) => {
 app.get("/users/:id", async (req, res, next) => {
   try {
     const id = req.params["id"];
-    const request: null = req.body;
-    const response: User = await getUser(id, request);
+    const response: User = await getUser(id);
     res.json(response);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.delete("/users/:id", async (req, res, next) => {
+  try {
+    const id = req.params["id"];
+    await deleteUser(id);
+    res.end();
   } catch (err) {
     next(err);
   }

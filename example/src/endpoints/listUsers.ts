@@ -1,6 +1,6 @@
 import { User } from "../client";
 
-export async function listUsers(request: null): Promise<User[]> {
+export async function listUsers(): Promise<User[]> {
   return [
     {
       name: "Frank",

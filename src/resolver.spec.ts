@@ -48,8 +48,8 @@ test("resolver fails with duplicate endpoint names", () => {
   expect(
     resolve(
       parse(`
-endpoint getUser: GET /users/:id null -> User
-endpoint getUser: GET /users/:id null -> User
+endpoint getUser: GET /users/:id void -> User
+endpoint getUser: GET /users/:id void -> User
 
 type User = {
   name: string

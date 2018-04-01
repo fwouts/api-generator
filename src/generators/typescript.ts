@@ -69,7 +69,9 @@ export function generateTypeScript(
         endpointArguments.push(`${subpath.name}: string`);
       }
     }
-    endpointArguments.push(`request: ${endpoint.input}`);
+    if (endpoint.input !== "void") {
+      endpointArguments.push(`request: ${endpoint.input}`);
+    }
     t.append(
       `export async function ${endpoint.name}(${endpointArguments.join(
         ", ",
@@ -85,19 +87,28 @@ export function generateTypeScript(
         }
       }
       t.append("`;\n");
-      t.append("const response = await axios.get(url, {");
-      t.indented(() => {
-        t.append("data: request,");
-      });
-      t.append("});\n");
-      t.append("return response.data;\n");
+      if (endpoint.output !== "void") {
+        t.append("const response = ");
+      }
+      t.append("await axios.get(url");
+      if (endpoint.input !== "void") {
+        t.append(", {");
+        t.indented(() => {
+          t.append("data: request,");
+        });
+        t.append("}");
+      }
+      t.append(");\n");
+      if (endpoint.output !== "void") {
+        t.append("return response.data;\n");
+      }
     });
     t.append("}");
   }
 
   function appendServerEndpoint(endpoint: Endpoint) {
     const path = endpoint.route
-      .map((subpath) => {
+      .map(subpath => {
         if (subpath.dynamic) {
           return ":" + subpath.name;
         } else {
@@ -121,14 +132,19 @@ export function generateTypeScript(
             args.push(subpath.name);
           }
         }
-        args.push("request");
-        t.append(`const request: ${endpoint.input} = req.body;\n`);
-        t.append(
-          `const response: ${endpoint.output} = await ${
-            endpoint.name
-          }(${args.join(", ")});\n`,
-        );
-        t.append(`res.json(response);\n`);
+        if (endpoint.input !== "void") {
+          args.push("request");
+          t.append(`const request: ${endpoint.input} = req.body;\n`);
+        }
+        if (endpoint.output !== "void") {
+          t.append(`const response: ${endpoint.output} = `);
+        }
+        t.append(`await ${endpoint.name}(${args.join(", ")});\n`);
+        if (endpoint.output !== "void") {
+          t.append(`res.json(response);\n`);
+        } else {
+          t.append("res.end();\n");
+        }
       });
       t.append("} catch (err) {");
       t.indented(() => {

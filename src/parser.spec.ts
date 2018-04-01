@@ -149,7 +149,7 @@ test("parser works with complex case", () => {
   expect(
     parse(`
 endpoint createUser: POST /users b -> c;
-endpoint deleteUser: DELETE /users/:id null -> null;
+endpoint deleteUser: DELETE /users/:id void -> void;
 endpoint endpoint: POST /my/endpoint/type type -> endpoint;
 
 type a = b | string | int;
@@ -197,8 +197,8 @@ type endpoint = b;
             name: "id",
           },
         ],
-        input: "null",
-        output: "null",
+        input: "void",
+        output: "void",
       },
       {
         name: "endpoint",
@@ -287,7 +287,7 @@ b -> c
 
 
 endpoint deleteUser:
-  DELETE /users/:id null -> null
+  DELETE /users/:id void -> void
 
 endpoint endpoint: POST /my/endpoint/type type -> endpoint
 
@@ -340,8 +340,8 @@ type endpoint = b
             name: "id",
           },
         ],
-        input: "null",
-        output: "null",
+        input: "void",
+        output: "void",
       },
       {
         name: "endpoint",

@@ -55,6 +55,7 @@ export function resolve(api: Api): ResolveResult {
       error = true;
     }
     if (
+      endpoint.input !== "void" &&
       !PRIMARY_TYPES.has(endpoint.input) &&
       !(endpoint.input in definedTypes)
     ) {
@@ -62,6 +63,7 @@ export function resolve(api: Api): ResolveResult {
       error = true;
     }
     if (
+      endpoint.output !== "void" &&
       !PRIMARY_TYPES.has(endpoint.output) &&
       !(endpoint.output in definedTypes)
     ) {

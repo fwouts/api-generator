@@ -19,8 +19,7 @@ app.post("/users", async (req, res, next) => {
 
 app.get("/users", async (req, res, next) => {
   try {
-    const request: null = req.body;
-    const response: ListUsersResponse = await listUsers(request);
+    const response: ListUsersResponse = await listUsers();
     res.json(response);
   } catch (err) {
     next(err);
@@ -30,8 +29,7 @@ app.get("/users", async (req, res, next) => {
 app.get("/users/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
-    const request: null = req.body;
-    const response: User = await getUser(id, request);
+    const response: User = await getUser(id);
     res.json(response);
   } catch (err) {
     next(err);
