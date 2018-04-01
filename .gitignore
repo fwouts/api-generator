@@ -2,6 +2,9 @@
 node_modules/
 
 # Compiled code.
+build/
+
+# Published code.
 dist/
 
 # Yarn error logs.

@@ -1,0 +1,20 @@
+endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse;
+
+type CreateUserRequest = {
+  name: string;
+  password: string;
+};
+
+type CreateUserResponse = {
+  id: string;
+};
+
+endpoint listUsers: GET /users null -> ListUsersResponse;
+
+type ListUsersResponse = User[];
+
+endpoint getUser: GET /users/:id null -> User;
+
+type User = {
+  name: string;
+};

@@ -1,9 +1,10 @@
 {
   "name": "apidef",
-  "version": "0.0.1",
   "author": "Francois Wouts <f@zenc.io>",
+  "private": true,
   "scripts": {
-    "build": "tsc && webpack",
+    "build": "tsc && webpack && cp build/cli.bundle.js.map dist/ && echo \"#!/usr/bin/env node\\n\" | cat - build/cli.bundle.js > dist/cli.bundle.js",
+    "publishnow": "yarn build && cd dist && yarn publish --access=public",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "tslint --project tsconfig.json --fix",

@@ -1,0 +1,9 @@
+{
+  "name": "@zenclabs/api",
+  "version": "0.0.2",
+  "author": "Francois Wouts <f@zenc.io>",
+  "license": "MIT",
+  "bin": {
+    "api": "cli.bundle.js"
+  }
+}

@@ -18,6 +18,7 @@ module.exports = {
   },
   plugins: [
     new UglifyJsPlugin({
+      sourceMap: true,
       uglifyOptions: {
         output: {
           comments: false,
@@ -25,9 +26,10 @@ module.exports = {
       },
     }),
   ],
+  devtool: "source-map",
   output: {
     filename: "cli.bundle.js",
-    path: path.resolve(__dirname, "dist"),
+    path: path.resolve(__dirname, "build"),
   },
   mode: "production",
 };
