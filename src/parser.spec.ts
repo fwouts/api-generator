@@ -21,7 +21,7 @@ type a = b;
 type b =
   `),
   ).toThrow(
-    "Syntax error (4:2): mismatched input '<EOF>' expecting {'endpoint', 'type', '|', '{', NAME}.",
+    "Syntax error (4:2): mismatched input '<EOF>' expecting {'endpoint', 'type', '{', NAME}.",
   );
   expect(() =>
     parse(`
@@ -74,7 +74,68 @@ test("parser accepts empty API", () => {
   });
 });
 
-test("parser works", () => {
+test("parser handles unions", () => {
+  expect(
+    parse(`
+type a = string | int;
+  `),
+  ).toEqual({
+    endpoints: [],
+    typeDefs: [
+      {
+        name: "a",
+        type: {
+          kind: "union",
+          items: ["string", "int"],
+        },
+      },
+    ],
+  });
+});
+
+test("parser handles arrays", () => {
+  expect(
+    parse(`
+type a = string[];
+  `),
+  ).toEqual({
+    endpoints: [],
+    typeDefs: [
+      {
+        name: "a",
+        type: {
+          kind: "array",
+          items: "string",
+        },
+      },
+    ],
+  });
+});
+
+test("parser handles structs", () => {
+  expect(
+    parse(`
+type a = {
+  myfield: string;
+};
+  `),
+  ).toEqual({
+    endpoints: [],
+    typeDefs: [
+      {
+        name: "a",
+        type: {
+          kind: "struct",
+          items: {
+            myfield: "string",
+          },
+        },
+      },
+    ],
+  });
+});
+
+test("parser works with complex case", () => {
   expect(
     parse(`
 endpoint createUser: POST /users b -> c;
@@ -86,7 +147,9 @@ type a = b | string | int;
 type b = {
   field1: string;
   field2: a[];
-  type: type | endpoint;
+  type: {
+    abc: type;
+   } | endpoint;
 };
 
 type c = string;
@@ -151,14 +214,34 @@ type endpoint = b;
     typeDefs: [
       {
         name: "a",
-        type: ["b", "string", "int"],
+        type: {
+          kind: "union",
+          items: ["b", "string", "int"],
+        },
       },
       {
         name: "b",
         type: {
-          field1: "string",
-          field2: ["a"], // array
-          type: ["type", "endpoint"], // union
+          kind: "struct",
+          items: {
+            field1: "string",
+            field2: {
+              kind: "array",
+              items: "a",
+            },
+            type: {
+              kind: "union",
+              items: [
+                {
+                  kind: "struct",
+                  items: {
+                    abc: "type",
+                  },
+                },
+                "endpoint",
+              ],
+            },
+          },
         },
       },
       {
@@ -167,7 +250,10 @@ type endpoint = b;
       },
       {
         name: "d",
-        type: ["b"],
+        type: {
+          kind: "array",
+          items: "b",
+        },
       },
       {
         name: "type",

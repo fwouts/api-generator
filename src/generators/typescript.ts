@@ -90,7 +90,7 @@ export function generateTypeScript(
 
   function appendServerEndpoint(endpoint: Endpoint) {
     const path = endpoint.route
-      .map((subpath) => {
+      .map(subpath => {
         if (subpath.dynamic) {
           return ":" + subpath.name;
         } else {
@@ -130,35 +130,38 @@ export function generateTypeScript(
       if (exported) {
         t.append(";\n");
       }
-    } else if (type instanceof Array) {
-      // Union (2+ items) or Array (1 item).
+    } else if (type.kind === "array") {
       if (exported) {
         t.append(`export type ${exported} = `);
       }
-      if (type.length === 1) {
-        appendType(type[0]);
-        t.append("[]");
-      } else {
-        let first = true;
-        for (const possibleType of type) {
-          if (!first) {
-            t.append(" | ");
-          }
-          appendType(possibleType);
-          first = false;
+      appendType(type.items);
+      t.append("[]");
+      if (exported) {
+        t.append(";\n");
+      }
+    } else if (type.kind === "union") {
+      if (exported) {
+        t.append(`export type ${exported} = `);
+      }
+      let first = true;
+      for (const possibleType of type.items) {
+        if (!first) {
+          t.append(" | ");
         }
+        appendType(possibleType);
+        first = false;
       }
       if (exported) {
         t.append(";\n");
       }
-    } else {
+    } else if (type.kind === "struct") {
       // Struct.
       if (exported) {
         t.append(`export interface ${exported} `);
       }
       t.append("{");
       t.indented(() => {
-        for (const [fieldName, fieldType] of Object.entries(type)) {
+        for (const [fieldName, fieldType] of Object.entries(type.items)) {
           t.append(fieldName, ": ");
           appendType(fieldType);
           t.append(";\n");
@@ -168,6 +171,8 @@ export function generateTypeScript(
       if (exported) {
         t.append("\n");
       }
+    } else {
+      throw new Error();
     }
   }
 }

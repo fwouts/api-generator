@@ -33,18 +33,13 @@ typedef
 
 type
     : array
-    | union
+    | type '|' type
     | struct
     | typename
     ;
 
 array
     : typename '[]'
-    ;
-
-union
-    : typename ('|' typename)*
-    | '|' typename ('|' typename)+
     ;
 
 struct

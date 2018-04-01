@@ -25,16 +25,23 @@ export interface TypeDef {
   type: Type;
 }
 
-export type Type = ArrayType | UnionType | SingleType;
+export type Type = ArrayType | UnionType | Struct | TypeName;
 
-export type ArrayType = [SingleType];
+export interface ArrayType {
+  kind: "array";
+  items: Type;
+}
 
-export type UnionType = SingleType[];
-
-export type SingleType = TypeName | Struct;
+export interface UnionType {
+  kind: "union";
+  items: Type[];
+}
 
 export interface Struct {
-  [name: string]: Type;
+  kind: "struct";
+  items: {
+    [name: string]: Type;
+  };
 }
 
 export type TypeName = string;

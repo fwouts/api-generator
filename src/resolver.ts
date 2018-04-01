@@ -87,20 +87,21 @@ export function resolve(api: Api): ResolveResult {
 
   function checkType(name: string, type: Type, errors: string[]) {
     if (typeof type === "string") {
-      // TypeName.
       if (!PRIMARY_TYPES.has(type) && !(type in definedTypes)) {
         errors.push(`Type ${name} refers to unknown type ${type}.`);
       }
-    } else if (type instanceof Array) {
-      // Union (2+ items) or Array (1 item).
-      for (const possibleType of type) {
+    } else if (type.kind === "array") {
+      checkType(name, type.items, errors);
+    } else if (type.kind === "union") {
+      for (const possibleType of type.items) {
         checkType(name, possibleType, errors);
       }
-    } else {
-      // Struct.
-      for (const [fieldName, fieldType] of Object.entries(type)) {
+    } else if (type.kind === "struct") {
+      for (const [fieldName, fieldType] of Object.entries(type.items)) {
         checkType(`${name}.${fieldName}`, fieldType, errors);
       }
+    } else {
+      throw new Error();
     }
   }
 }

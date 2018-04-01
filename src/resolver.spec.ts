@@ -20,10 +20,16 @@ type c = string;
     kind: "success",
     definedEndpoints: {},
     definedTypes: {
-      a: ["b", "string", "int"],
+      a: {
+        kind: "union",
+        items: ["b", "string", "int"],
+      },
       b: {
-        field1: "string",
-        field2: "a",
+        kind: "struct",
+        items: {
+          field1: "string",
+          field2: "a",
+        },
       },
       c: "string",
     },

@@ -8,6 +8,7 @@ import {
   Type,
   TypeDef,
   TypeName,
+  UnionType,
 } from "./defs";
 import { ApiDefLexer } from "./grammar/ApiDefLexer";
 import {
@@ -22,7 +23,6 @@ import {
   TypeContext,
   TypedefContext,
   TypenameContext,
-  UnionContext,
 } from "./grammar/ApiDefParser";
 
 export function parse(code: string): Api {
@@ -114,8 +114,8 @@ function read_typedef(typedef: TypedefContext): TypeDef {
 function read_type(type: TypeContext): Type {
   if (type.array()) {
     return read_array(type.array()!);
-  } else if (type.union()) {
-    return read_union(type.union()!);
+  } else if (type.type().length) {
+    return mergeUnions(type.type().map(read_type));
   } else if (type.struct()) {
     return read_struct(type.struct()!);
   } else if (type.typename()) {
@@ -126,20 +126,33 @@ function read_type(type: TypeContext): Type {
 }
 
 function read_array(array: ArrayContext): Type {
-  return [read_typename(array.typename())];
+  return {
+    kind: "array",
+    items: read_typename(array.typename()),
+  };
 }
 
-function read_union(union: UnionContext): Type {
-  const u = union.typename().map(read_typename);
-  if (u.length === 1) {
-    return u[0];
-  } else {
-    return u;
+function mergeUnions(types: Type[]): UnionType {
+  if (types.length !== 2) {
+    throw new Error();
   }
+  const [first, second] = types;
+  if (typeof first !== "string") {
+    if (first.kind === "union") {
+      return {
+        kind: "union",
+        items: first.items.concat(second),
+      };
+    }
+  }
+  return {
+    kind: "union",
+    items: [first, second],
+  };
 }
 
 function read_struct(struct: StructContext): Struct {
-  return struct
+  const items = struct
     .structfield()
     .map(read_structfield)
     .reduce((acc, [fieldName, fieldType]) => {
@@ -148,6 +161,10 @@ function read_struct(struct: StructContext): Struct {
         [fieldName]: fieldType,
       };
     }, {});
+  return {
+    kind: "struct",
+    items,
+  };
 }
 
 function read_structfield(structfield: StructfieldContext): [string, Type] {
