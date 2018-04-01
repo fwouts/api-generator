@@ -29,7 +29,10 @@ export function cli(env: Environment) {
               env.error(result.errors.join("\n"));
               break;
             }
-            const generated = generateTypeScript(result.definedTypes);
+            const generated = generateTypeScript(
+              result.definedEndpoints,
+              result.definedTypes,
+            );
             env.info(generated);
             break;
           default:

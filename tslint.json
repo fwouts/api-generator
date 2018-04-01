@@ -11,6 +11,7 @@
   "rulesDirectory": [],
   "linterOptions": {
     "exclude": [
+      "example/*",
       "src/grammar/*"
     ]
   }

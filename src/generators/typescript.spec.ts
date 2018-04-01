@@ -8,38 +8,158 @@ import { generateTypeScript } from "./typescript";
 
 const API = resolve(
   parse(`
-type a = b | string | int;
+endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse;
 
-type b = {
-  field1: string;
-  field2: a;
+type CreateUserRequest = {
+  name: string;
+  password: string;
 };
 
-type c = string;
+type CreateUserResponse = {
+  id: string;
+};
 
-type d = {};
+endpoint listUsers: GET /users null -> ListUsersResponse;
 
-type e = b[];
+type ListUsersResponse = User[];
+
+endpoint getUser: GET /users/:id null -> User;
+
+type User = {
+  name: string;
+};
 `),
 );
 
-test("generator", () => {
+test("generator only types", () => {
   if (API.kind !== "success") {
     throw new Error(`Invalid test data:\n${API.errors.join("\n")}`);
   }
-  expect(generateTypeScript(API.definedTypes))
-    .toEqual(`export type a = b | string | number;
-
-export interface b {
-  field1: string;
-  field2: a;
+  expect(generateTypeScript(API.definedEndpoints, API.definedTypes))
+    .toEqual(`export interface CreateUserRequest {
+  name: string;
+  password: string;
 }
 
-export type c = string;
-
-export interface d {
+export interface CreateUserResponse {
+  id: string;
 }
 
-export type e = b[];
+export type ListUsersResponse = User[];
+
+export interface User {
+  name: string;
+}
+`);
+});
+
+test("generator with client", () => {
+  if (API.kind !== "success") {
+    throw new Error(`Invalid test data:\n${API.errors.join("\n")}`);
+  }
+  expect(
+    generateTypeScript(API.definedEndpoints, API.definedTypes, {
+      endpoints: {
+        kind: "client",
+        baseUrl: "https://api.test.com",
+      },
+    }),
+  ).toEqual(`import axios from "axios";
+
+export async function createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
+  let url = \`https://api.test.com/users\`;
+  const response = await axios.get(url, {
+    data: request,
+  });
+  return response.data;
+}
+
+export async function listUsers(request: null): Promise<ListUsersResponse> {
+  let url = \`https://api.test.com/users\`;
+  const response = await axios.get(url, {
+    data: request,
+  });
+  return response.data;
+}
+
+export async function getUser(id: string, request: null): Promise<User> {
+  let url = \`https://api.test.com/users/\${id}\`;
+  const response = await axios.get(url, {
+    data: request,
+  });
+  return response.data;
+}
+
+export interface CreateUserRequest {
+  name: string;
+  password: string;
+}
+
+export interface CreateUserResponse {
+  id: string;
+}
+
+export type ListUsersResponse = User[];
+
+export interface User {
+  name: string;
+}
+`);
+});
+
+test("generator with server", () => {
+  if (API.kind !== "success") {
+    throw new Error(`Invalid test data:\n${API.errors.join("\n")}`);
+  }
+  expect(
+    generateTypeScript(API.definedEndpoints, API.definedTypes, {
+      endpoints: {
+        kind: "server",
+      },
+    }),
+  ).toEqual(`import express from "express";
+
+const PORT = 3010;
+
+const app = express();
+
+app.post("/users", (req, res) => {
+  const request: CreateUserRequest = req.body;
+  let response: CreateUserResponse;
+  // TODO: Implement.
+  res.json(response);
+});
+
+app.get("/users", (req, res) => {
+  const request: null = req.body;
+  let response: ListUsersResponse;
+  // TODO: Implement.
+  res.json(response);
+});
+
+app.get("/users/:id", (req, res) => {
+  const id = req.params["id"];
+  const request: null = req.body;
+  let response: User;
+  // TODO: Implement.
+  res.json(response);
+});
+
+app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
+
+export interface CreateUserRequest {
+  name: string;
+  password: string;
+}
+
+export interface CreateUserResponse {
+  id: string;
+}
+
+export type ListUsersResponse = User[];
+
+export interface User {
+  name: string;
+}
 `);
 });
