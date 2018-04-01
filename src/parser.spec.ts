@@ -85,8 +85,8 @@ type a = b | string | int;
 
 type b = {
   field1: string;
-  field2: a;
-  type: type;
+  field2: a[];
+  type: type | endpoint;
 };
 
 type c = string;
@@ -157,8 +157,8 @@ type endpoint = b;
         name: "b",
         type: {
           field1: "string",
-          field2: "a",
-          type: "type",
+          field2: ["a"], // array
+          type: ["type", "endpoint"], // union
         },
       },
       {

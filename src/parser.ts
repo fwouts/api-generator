@@ -151,7 +151,7 @@ function read_struct(struct: StructContext): Struct {
 }
 
 function read_structfield(structfield: StructfieldContext): [string, Type] {
-  return [structfield.fieldname().text, read_union(structfield.union())];
+  return [structfield.fieldname().text, read_type(structfield.type())];
 }
 
 function read_typename(typename: TypenameContext): TypeName {

@@ -618,7 +618,7 @@ export class ApiDefParser extends Parser {
         this.state = 109;
         this.match(ApiDefParser.T__1);
         this.state = 110;
-        this.union();
+        this.type();
       }
     } catch (re) {
       if (re instanceof RecognitionException) {
@@ -768,7 +768,7 @@ export class ApiDefParser extends Parser {
     "\r\x02ef\x07\x06\x02\x02fh\x03\x02\x02\x02gd\x03\x02\x02\x02hk\x03\x02" +
     "\x02\x02ig\x03\x02\x02\x02ij\x03\x02\x02\x02jl\x03\x02\x02\x02ki\x03\x02" +
     "\x02\x02lm\x07\x11\x02\x02m\x17\x03\x02\x02\x02no\x05\x1A\x0E\x02op\x07" +
-    "\x04\x02\x02pq\x05\x14\v\x02q\x19\x03\x02\x02\x02rs\x05\x1E\x10\x02s\x1B" +
+    "\x04\x02\x02pq\x05\x10\t\x02q\x19\x03\x02\x02\x02rs\x05\x1E\x10\x02s\x1B" +
     "\x03\x02\x02\x02tu\x05\x1E\x10\x02u\x1D\x03\x02\x02\x02vw\t\x03\x02\x02" +
     'w\x1F\x03\x02\x02\x02\v"$;>LV_ai';
   public static __ATN: ATN;
@@ -1002,8 +1002,8 @@ export class StructfieldContext extends ParserRuleContext {
   public fieldname(): FieldnameContext {
     return this.getRuleContext(0, FieldnameContext);
   }
-  public union(): UnionContext {
-    return this.getRuleContext(0, UnionContext);
+  public type(): TypeContext {
+    return this.getRuleContext(0, TypeContext);
   }
   constructor(parent: ParserRuleContext, invokingState: number);
   constructor(parent: ParserRuleContext, invokingState: number) {

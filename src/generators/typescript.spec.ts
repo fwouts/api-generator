@@ -13,10 +13,14 @@ endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse;
 type CreateUserRequest = {
   name: string;
   password: string;
+  roles: string[];
 };
 
 type CreateUserResponse = {
   id: string;
+  info: {
+    name: string;
+  };
 };
 
 endpoint listUsers: GET /users null -> ListUsersResponse;
@@ -39,10 +43,14 @@ test("generator only types", () => {
     .toEqual(`export interface CreateUserRequest {
   name: string;
   password: string;
+  roles: string[];
 }
 
 export interface CreateUserResponse {
   id: string;
+  info: {
+    name: string;
+  };
 }
 
 export type ListUsersResponse = User[];
@@ -93,10 +101,14 @@ export async function getUser(id: string, request: null): Promise<User> {
 export interface CreateUserRequest {
   name: string;
   password: string;
+  roles: string[];
 }
 
 export interface CreateUserResponse {
   id: string;
+  info: {
+    name: string;
+  };
 }
 
 export type ListUsersResponse = User[];
@@ -150,10 +162,14 @@ app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
 export interface CreateUserRequest {
   name: string;
   password: string;
+  roles: string[];
 }
 
 export interface CreateUserResponse {
   id: string;
+  info: {
+    name: string;
+  };
 }
 
 export type ListUsersResponse = User[];

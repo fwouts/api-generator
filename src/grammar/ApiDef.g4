@@ -52,7 +52,7 @@ struct
     ;
 
 structfield
-    : fieldname ':' union
+    : fieldname ':' type
     ;
 
 fieldname
