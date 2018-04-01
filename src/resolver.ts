@@ -1,12 +1,4 @@
-import { Api, Endpoint, Type } from "./defs";
-
-export const PRIMARY_TYPES = new Set([
-  "bool",
-  "int",
-  "float",
-  "string",
-  "null",
-]);
+import { Api, Endpoint, PRIMITIVE_TYPES, Type } from "./defs";
 
 export interface EndpointDefinitions {
   [name: string]: Endpoint;
@@ -33,7 +25,7 @@ export function resolve(api: Api): ResolveResult {
   const definedTypes: TypeDefinitions = {};
   for (const typeDef of api.typeDefs) {
     let error = false;
-    if (PRIMARY_TYPES.has(typeDef.name)) {
+    if (PRIMITIVE_TYPES.has(typeDef.name)) {
       recordedErrors.push(`Cannot redefine known type ${typeDef.name}.`);
       error = true;
     }
@@ -56,7 +48,7 @@ export function resolve(api: Api): ResolveResult {
     }
     if (
       endpoint.input !== "void" &&
-      !PRIMARY_TYPES.has(endpoint.input) &&
+      !PRIMITIVE_TYPES.has(endpoint.input) &&
       !(endpoint.input in definedTypes)
     ) {
       recordedErrors.push(`No such type ${endpoint.input}.`);
@@ -64,7 +56,7 @@ export function resolve(api: Api): ResolveResult {
     }
     if (
       endpoint.output !== "void" &&
-      !PRIMARY_TYPES.has(endpoint.output) &&
+      !PRIMITIVE_TYPES.has(endpoint.output) &&
       !(endpoint.output in definedTypes)
     ) {
       recordedErrors.push(`No such type ${endpoint.output}.`);
@@ -89,7 +81,7 @@ export function resolve(api: Api): ResolveResult {
 
   function checkType(name: string, type: Type, errors: string[]) {
     if (typeof type === "string") {
-      if (!PRIMARY_TYPES.has(type) && !(type in definedTypes)) {
+      if (!PRIMITIVE_TYPES.has(type) && !(type in definedTypes)) {
         errors.push(`Type ${name} refers to unknown type ${type}.`);
       }
     } else if (type.kind === "array") {

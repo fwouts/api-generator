@@ -66,7 +66,7 @@ export function cli(env: Environment) {
       },
     );
 
-  program.command("*").action(command => {
+  program.command("*").action((command) => {
     env.error(`Unknown command: ${command}.`);
   });
 

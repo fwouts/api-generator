@@ -61,3 +61,22 @@ export interface SymbolType {
 }
 
 export type TypeName = string;
+
+export type PrimitiveType =
+  | "bool"
+  | "int"
+  | "long"
+  | "float"
+  | "double"
+  | "string"
+  | "null";
+
+export const PRIMITIVE_TYPES = new Set([
+  "bool",
+  "int",
+  "long",
+  "float",
+  "double",
+  "string",
+  "null",
+]);

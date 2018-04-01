@@ -1,10 +1,6 @@
 import TextBuilder from "textbuilder";
-import { Endpoint, Type } from "../defs";
-import {
-  EndpointDefinitions,
-  PRIMARY_TYPES,
-  TypeDefinitions,
-} from "../resolver";
+import { Endpoint, Type, PRIMITIVE_TYPES, PrimitiveType } from "../defs";
+import { EndpointDefinitions, TypeDefinitions } from "../resolver";
 
 export interface GenerateOptions {
   endpoints?:
@@ -161,8 +157,8 @@ export function generateTypeScript(
       if (exported) {
         t.append(`export type ${exported} = `);
       }
-      if (PRIMARY_TYPES.has(type)) {
-        t.append(primaryTypeToTypeScript(type));
+      if (PRIMITIVE_TYPES.has(type)) {
+        t.append(primitiveTypeToTypeScript(type as PrimitiveType));
       } else {
         t.append(type);
       }
@@ -228,19 +224,22 @@ export function generateTypeScript(
   }
 }
 
-function primaryTypeToTypeScript(typeName: string) {
-  switch (typeName) {
-    case "bool":
-      return "boolean";
-    case "int":
-      return "number";
-    case "float":
-      return "number";
-    case "string":
-      return "string";
-    case "null":
-      return "null";
-    default:
-      throw new Error(`Unknown primary type: ${typeName}.`);
+function primitiveTypeToTypeScript(typeName: PrimitiveType) {
+  if (typeName === "bool") {
+    return "bool";
+  } else if (typeName === "int") {
+    return "number";
+  } else if (typeName === "long") {
+    return "number";
+  } else if (typeName === "float") {
+    return "number";
+  } else if (typeName === "double") {
+    return "number";
+  } else if (typeName === "string") {
+    return "string";
+  } else if (typeName === "null") {
+    return "null";
+  } else {
+    throw new Error(`Unknown primary type: ${typeName}.`);
   }
 }
