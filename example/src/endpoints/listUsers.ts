@@ -1,6 +1,6 @@
-import { User } from "../client";
+import { AuthRequired, User } from "../server";
 
-export async function listUsers(): Promise<User[]> {
+export async function listUsers(headers: AuthRequired): Promise<User[]> {
   return [
     {
       name: "Frank",

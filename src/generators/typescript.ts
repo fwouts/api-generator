@@ -61,6 +61,9 @@ export function generateTypeScript(
 
   function appendClientEndpoint(endpoint: Endpoint) {
     const endpointArguments: string[] = [];
+    if (endpoint.headers) {
+      endpointArguments.push(`headers: ${endpoint.headers}`);
+    }
     for (const subpath of endpoint.route) {
       if (subpath.dynamic) {
         endpointArguments.push(`${subpath.name}: string`);
@@ -94,6 +97,9 @@ export function generateTypeScript(
         if (endpoint.input !== "void") {
           t.append("data: request,\n");
         }
+        if (endpoint.headers) {
+          t.append("headers,\n");
+        }
       });
       t.append("});\n");
       if (endpoint.output !== "void") {
@@ -119,8 +125,32 @@ export function generateTypeScript(
     t.indented(() => {
       t.append("try {");
       t.indented(() => {
-        // TODO: Double check input structure.
         const args: string[] = [];
+        // TODO: Double check header values.
+        if (endpoint.headers) {
+          args.push("headers");
+          t.append(`const headers: ${endpoint.headers} = {`);
+          t.indented(() => {
+            const headersType = typeDefinitions[endpoint.headers!];
+            if (
+              typeof headersType === "string" ||
+              headersType.kind !== "struct"
+            ) {
+              throw new Error(
+                `Headers type ${endpoint.headers} must be a struct.`,
+              );
+            }
+            for (const [fieldName, fieldType] of Object.entries(
+              headersType.items,
+            )) {
+              if (fieldType !== "string") {
+                throw new Error(`Header ${fieldName} must be a string.`);
+              }
+              t.append(`${fieldName}: req.header("${fieldName}") || "",\n`);
+            }
+          });
+          t.append(`};\n`);
+        }
         for (const subpath of endpoint.route) {
           if (subpath.dynamic) {
             t.append(
@@ -129,6 +159,7 @@ export function generateTypeScript(
             args.push(subpath.name);
           }
         }
+        // TODO: Double check input structure.
         if (endpoint.input !== "void") {
           args.push("request");
           t.append(`const request: ${endpoint.input} = req.body;\n`);

@@ -19,7 +19,10 @@ app.post("/users", async (req, res, next) => {
 
 app.get("/users", async (req, res, next) => {
   try {
-    const response: ListUsersResponse = await listUsers();
+    const headers: AuthRequired = {
+      Authorization: req.header("Authorization") || "",
+    };
+    const response: ListUsersResponse = await listUsers(headers);
     res.json(response);
   } catch (err) {
     next(err);
@@ -28,8 +31,11 @@ app.get("/users", async (req, res, next) => {
 
 app.get("/users/:id", async (req, res, next) => {
   try {
+    const headers: AuthRequired = {
+      Authorization: req.header("Authorization") || "",
+    };
     const id = req.params.id;
-    const response: User = await getUser(id);
+    const response: User = await getUser(headers, id);
     res.json(response);
   } catch (err) {
     next(err);
@@ -52,4 +58,8 @@ export type ListUsersResponse = User[];
 
 export interface User {
   name: string;
+}
+
+export interface AuthRequired {
+  Authorization: string;
 }

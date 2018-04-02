@@ -7,6 +7,7 @@ export interface Endpoint {
   name: EndpointName;
   method: Method;
   route: RouteSubpath[];
+  headers?: TypeName;
   input: TypeName;
   output: TypeName;
 }

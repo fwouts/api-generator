@@ -47,6 +47,14 @@ export function resolve(api: Api): ResolveResult {
       error = true;
     }
     if (
+      endpoint.headers &&
+      !PRIMITIVE_TYPES.has(endpoint.headers) &&
+      !(endpoint.headers in definedTypes)
+    ) {
+      recordedErrors.push(`No such type ${endpoint.headers}.`);
+      error = true;
+    }
+    if (
       endpoint.input !== "void" &&
       !PRIMITIVE_TYPES.has(endpoint.input) &&
       !(endpoint.input in definedTypes)

@@ -9,12 +9,18 @@ type CreateUserResponse = {
   id: string;
 };
 
+@headers(AuthRequired)
 endpoint listUsers: GET /users void -> ListUsersResponse;
 
 type ListUsersResponse = User[];
 
+@headers(AuthRequired)
 endpoint getUser: GET /users/:id void -> User;
 
 type User = {
   name: string;
 };
+
+type AuthRequired = {
+  Authorization: string
+}

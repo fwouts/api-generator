@@ -1,6 +1,9 @@
-import { User } from "../server";
+import { AuthRequired, User } from "../server";
 
-export async function getUser(id: string): Promise<User> {
+export async function getUser(
+  headers: AuthRequired,
+  id: string,
+): Promise<User> {
   return {
     name: "Hi",
   };

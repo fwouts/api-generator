@@ -12,20 +12,22 @@ export async function createUser(request: CreateUserRequest): Promise<CreateUser
   return response.data;
 }
 
-export async function listUsers(): Promise<ListUsersResponse> {
+export async function listUsers(headers: AuthRequired): Promise<ListUsersResponse> {
   const url = `${URL}/users`;
   const response = await axios({
     url,
     method: "GET",
+    headers,
   });
   return response.data;
 }
 
-export async function getUser(id: string): Promise<User> {
+export async function getUser(headers: AuthRequired, id: string): Promise<User> {
   const url = `${URL}/users/${id}`;
   const response = await axios({
     url,
     method: "GET",
+    headers,
   });
   return response.data;
 }
@@ -43,4 +45,8 @@ export type ListUsersResponse = User[];
 
 export interface User {
   name: string;
+}
+
+export interface AuthRequired {
+  Authorization: string;
 }

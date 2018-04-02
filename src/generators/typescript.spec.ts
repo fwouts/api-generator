@@ -27,17 +27,24 @@ type CreateUserResponse = {
   }
 }
 
+@headers(AuthRequired)
 endpoint listUsers: GET /users void -> ListUsersResponse
 
 type ListUsersResponse = User[]
 
+@headers(AuthRequired)
 endpoint getUser: GET /users/:id void -> User
 
 type User = {
   name: string
 }
 
+@headers(AuthRequired)
 endpoint deleteUser: DELETE /users/:id void -> void
+
+type AuthRequired = {
+  Authorization: string
+}
 `),
 );
 
@@ -68,6 +75,10 @@ export type ListUsersResponse = User[];
 export interface User {
   name: string;
 }
+
+export interface AuthRequired {
+  Authorization: string;
+}
 `);
 });
 
@@ -96,29 +107,32 @@ export async function createUser(request: CreateUserRequest): Promise<CreateUser
   return response.data;
 }
 
-export async function listUsers(): Promise<ListUsersResponse> {
+export async function listUsers(headers: AuthRequired): Promise<ListUsersResponse> {
   const url = \`\${URL}/users\`;
   const response = await axios({
     url,
     method: "GET",
+    headers,
   });
   return response.data;
 }
 
-export async function getUser(id: string): Promise<User> {
+export async function getUser(headers: AuthRequired, id: string): Promise<User> {
   const url = \`\${URL}/users/\${id}\`;
   const response = await axios({
     url,
     method: "GET",
+    headers,
   });
   return response.data;
 }
 
-export async function deleteUser(id: string): Promise<void> {
+export async function deleteUser(headers: AuthRequired, id: string): Promise<void> {
   const url = \`\${URL}/users/\${id}\`;
   await axios({
     url,
     method: "DELETE",
+    headers,
   });
 }
 
@@ -143,6 +157,10 @@ export type ListUsersResponse = User[];
 
 export interface User {
   name: string;
+}
+
+export interface AuthRequired {
+  Authorization: string;
 }
 `);
 });
@@ -179,7 +197,10 @@ app.post("/users", async (req, res, next) => {
 
 app.get("/users", async (req, res, next) => {
   try {
-    const response: ListUsersResponse = await listUsers();
+    const headers: AuthRequired = {
+      Authorization: req.header("Authorization") || "",
+    };
+    const response: ListUsersResponse = await listUsers(headers);
     res.json(response);
   } catch (err) {
     next(err);
@@ -188,8 +209,11 @@ app.get("/users", async (req, res, next) => {
 
 app.get("/users/:id", async (req, res, next) => {
   try {
+    const headers: AuthRequired = {
+      Authorization: req.header("Authorization") || "",
+    };
     const id = req.params["id"];
-    const response: User = await getUser(id);
+    const response: User = await getUser(headers, id);
     res.json(response);
   } catch (err) {
     next(err);
@@ -198,8 +222,11 @@ app.get("/users/:id", async (req, res, next) => {
 
 app.delete("/users/:id", async (req, res, next) => {
   try {
+    const headers: AuthRequired = {
+      Authorization: req.header("Authorization") || "",
+    };
     const id = req.params["id"];
-    await deleteUser(id);
+    await deleteUser(headers, id);
     res.end();
   } catch (err) {
     next(err);
@@ -230,6 +257,10 @@ export type ListUsersResponse = User[];
 
 export interface User {
   name: string;
+}
+
+export interface AuthRequired {
+  Authorization: string;
 }
 `);
 });

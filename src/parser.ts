@@ -16,6 +16,7 @@ import {
   ApiDefParser,
   ArrayContext,
   EndpointContext,
+  HeadersContext,
   MethodContext,
   RouteContext,
   StructContext,
@@ -86,6 +87,7 @@ function read_endpoint(endpoint: EndpointContext): Endpoint {
     name: endpoint.endpointname().text,
     method: read_method(endpoint.method()),
     route: read_route(endpoint.route()),
+    headers: read_headers(endpoint.headers()),
     input: read_typename(endpoint.typename()[0]),
     output: read_typename(endpoint.typename()[1]),
   };
@@ -104,6 +106,14 @@ function read_subpath(subpath: SubpathContext): RouteSubpath {
     name: subpath.name().text,
     dynamic: !!subpath._dynamic,
   };
+}
+
+function read_headers(headers?: HeadersContext) {
+  if (headers) {
+    return read_typename(headers.typename());
+  } else {
+    return undefined;
+  }
 }
 
 function read_typedef(typedef: TypedefContext): TypeDef {

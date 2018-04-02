@@ -33,7 +33,7 @@ test("parser rejects extraneous syntax", () => {
 export type a = string;
 `),
   ).toThrow(
-    "Syntax error (2:0): extraneous input 'export' expecting {<EOF>, 'endpoint', 'type', LINEBREAK}.",
+    "Syntax error (2:0): extraneous input 'export' expecting {<EOF>, 'endpoint', '@headers', 'type', LINEBREAK}.",
   );
 });
 
@@ -185,8 +185,16 @@ test("parser works with complex case", () => {
   expect(
     parse(`
 endpoint createUser: POST /users b -> c;
+
+@headers(AuthRequired)
 endpoint deleteUser: DELETE /users/:id void -> void;
+
+@headers(AuthRequired)
 endpoint endpoint: POST /my/endpoint/type type -> endpoint;
+
+type AuthRequired = {
+  Authorization: string
+}
 
 type a = b | string | int;
 
@@ -233,6 +241,7 @@ type endpoint = b;
             name: "id",
           },
         ],
+        headers: "AuthRequired",
         input: "void",
         output: "void",
       },
@@ -253,11 +262,21 @@ type endpoint = b;
             name: "type",
           },
         ],
+        headers: "AuthRequired",
         input: "type",
         output: "endpoint",
       },
     ],
     typeDefs: [
+      {
+        name: "AuthRequired",
+        type: {
+          kind: "struct",
+          items: {
+            Authorization: "string",
+          },
+        },
+      },
       {
         name: "a",
         type: {

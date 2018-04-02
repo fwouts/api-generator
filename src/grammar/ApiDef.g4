@@ -5,7 +5,11 @@ api
     ;
 
 endpoint
-    : 'endpoint' LINEBREAK* endpointname LINEBREAK* ':' LINEBREAK* method LINEBREAK* route LINEBREAK* typename LINEBREAK* '->' LINEBREAK* typename separator
+    : headers? 'endpoint' LINEBREAK* endpointname LINEBREAK* ':' LINEBREAK* method LINEBREAK* route LINEBREAK* typename LINEBREAK* '->' LINEBREAK* typename separator
+    ;
+
+headers
+    : '@headers' '(' typename ')' LINEBREAK*
     ;
 
 endpointname

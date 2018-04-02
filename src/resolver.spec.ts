@@ -81,12 +81,13 @@ type a = b
   expect(
     resolve(
       parse(`
+@headers(c)
 endpoint myendpoint: GET /endpoint a -> b
 `),
     ),
   ).toEqual({
     kind: "failure",
-    errors: ["No such type a.", "No such type b."],
+    errors: ["No such type c.", "No such type a.", "No such type b."],
   });
 });
 
