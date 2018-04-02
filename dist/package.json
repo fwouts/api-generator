@@ -1,6 +1,6 @@
 {
   "name": "@zenclabs/api",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "author": "Francois Wouts <f@zenc.io>",
   "license": "MIT",
   "bin": {
