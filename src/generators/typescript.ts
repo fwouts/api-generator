@@ -75,7 +75,7 @@ export function generateTypeScript(
       )}): Promise<${endpoint.output}> {`,
     );
     t.indented(() => {
-      t.append(`let url = \`\${URL}`);
+      t.append(`const url = \`\${URL}`);
       for (const subpath of endpoint.route) {
         if (subpath.dynamic) {
           t.append(`/\${${subpath.name}}`);
@@ -87,15 +87,15 @@ export function generateTypeScript(
       if (endpoint.output !== "void") {
         t.append("const response = ");
       }
-      t.append("await axios.get(url");
-      if (endpoint.input !== "void") {
-        t.append(", {");
-        t.indented(() => {
-          t.append("data: request,");
-        });
-        t.append("}");
-      }
-      t.append(");\n");
+      t.append(`await axios({`);
+      t.indented(() => {
+        t.append("url,\n");
+        t.append(`method: "${endpoint.method}",\n`);
+        if (endpoint.input !== "void") {
+          t.append("data: request,\n");
+        }
+      });
+      t.append("});\n");
       if (endpoint.output !== "void") {
         t.append("return response.data;\n");
       }

@@ -87,28 +87,39 @@ test("generator with client", () => {
 const URL = "https://api.test.com";
 
 export async function createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
-  let url = \`\${URL}/users\`;
-  const response = await axios.get(url, {
+  const url = \`\${URL}/users\`;
+  const response = await axios({
+    url,
+    method: "POST",
     data: request,
   });
   return response.data;
 }
 
 export async function listUsers(): Promise<ListUsersResponse> {
-  let url = \`\${URL}/users\`;
-  const response = await axios.get(url);
+  const url = \`\${URL}/users\`;
+  const response = await axios({
+    url,
+    method: "GET",
+  });
   return response.data;
 }
 
 export async function getUser(id: string): Promise<User> {
-  let url = \`\${URL}/users/\${id}\`;
-  const response = await axios.get(url);
+  const url = \`\${URL}/users/\${id}\`;
+  const response = await axios({
+    url,
+    method: "GET",
+  });
   return response.data;
 }
 
 export async function deleteUser(id: string): Promise<void> {
-  let url = \`\${URL}/users/\${id}\`;
-  await axios.get(url);
+  const url = \`\${URL}/users/\${id}\`;
+  await axios({
+    url,
+    method: "DELETE",
+  });
 }
 
 export interface CreateUserRequest {

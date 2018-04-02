@@ -56,8 +56,11 @@ type a = string;
 const URL = \"https://api.test.com\";
 
 export async function endpoint(): Promise<a> {
-  let url = \`\${URL}/endpoint\`;
-  const response = await axios.get(url);
+  const url = \`\${URL}/endpoint\`;
+  const response = await axios({
+    url,
+    method: "POST",
+  });
   return response.data;
 }
 
