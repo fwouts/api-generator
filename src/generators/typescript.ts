@@ -126,7 +126,6 @@ export function generateTypeScript(
       t.append("try {");
       t.indented(() => {
         const args: string[] = [];
-        // TODO: Double check header values.
         if (endpoint.headers) {
           args.push("headers");
           t.append(`const headers: ${endpoint.headers} = {`);
@@ -143,10 +142,18 @@ export function generateTypeScript(
             for (const [fieldName, fieldType] of Object.entries(
               headersType.items,
             )) {
-              if (fieldType !== "string") {
+              if (fieldType === "string") {
+                // TODO: Fail if the header is not set or empty.
+                t.append(`${fieldName}: req.header("${fieldName}") || "",\n`);
+              } else if (
+                typeof fieldType === "object" &&
+                fieldType.kind === "optional" &&
+                fieldType.type === "string"
+              ) {
+                t.append(`${fieldName}: req.header("${fieldName}"),\n`);
+              } else {
                 throw new Error(`Header ${fieldName} must be a string.`);
               }
-              t.append(`${fieldName}: req.header("${fieldName}") || "",\n`);
             }
           });
           t.append(`};\n`);

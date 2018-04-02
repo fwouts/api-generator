@@ -27,7 +27,7 @@ type CreateUserResponse = {
   }
 }
 
-@headers(AuthRequired)
+@headers(AuthOptional)
 endpoint listUsers: GET /users void -> ListUsersResponse
 
 type ListUsersResponse = User[]
@@ -41,6 +41,10 @@ type User = {
 
 @headers(AuthRequired)
 endpoint deleteUser: DELETE /users/:id void -> void
+
+type AuthOptional = {
+  Authorization?: string
+}
 
 type AuthRequired = {
   Authorization: string
@@ -76,6 +80,10 @@ export interface User {
   name: string;
 }
 
+export interface AuthOptional {
+  Authorization?: string;
+}
+
 export interface AuthRequired {
   Authorization: string;
 }
@@ -107,7 +115,7 @@ export async function createUser(request: CreateUserRequest): Promise<CreateUser
   return response.data;
 }
 
-export async function listUsers(headers: AuthRequired): Promise<ListUsersResponse> {
+export async function listUsers(headers: AuthOptional): Promise<ListUsersResponse> {
   const url = \`\${URL}/users\`;
   const response = await axios({
     url,
@@ -159,6 +167,10 @@ export interface User {
   name: string;
 }
 
+export interface AuthOptional {
+  Authorization?: string;
+}
+
 export interface AuthRequired {
   Authorization: string;
 }
@@ -197,8 +209,8 @@ app.post("/users", async (req, res, next) => {
 
 app.get("/users", async (req, res, next) => {
   try {
-    const headers: AuthRequired = {
-      Authorization: req.header("Authorization") || "",
+    const headers: AuthOptional = {
+      Authorization: req.header("Authorization"),
     };
     const response: ListUsersResponse = await listUsers(headers);
     res.json(response);
@@ -257,6 +269,10 @@ export type ListUsersResponse = User[];
 
 export interface User {
   name: string;
+}
+
+export interface AuthOptional {
+  Authorization?: string;
 }
 
 export interface AuthRequired {
