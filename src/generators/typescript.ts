@@ -45,6 +45,7 @@ export function generateTypeScript(
       appendServerEndpoint(endpoint);
       t.append("\n\n");
     }
+    t.append("// tslint:disable-next-line no-console\n");
     t.append(
       "app.listen(PORT, () => console.log(`Listening on port ${PORT}`));\n\n",
     );

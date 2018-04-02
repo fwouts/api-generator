@@ -101,6 +101,7 @@ app.post(\"/endpoint\", async (req, res, next) => {
   }
 });
 
+// tslint:disable-next-line no-console
 app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
 
 export type a = string;

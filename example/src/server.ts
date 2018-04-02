@@ -36,26 +36,17 @@ app.get("/users/:id", async (req, res, next) => {
   }
 });
 
+// tslint:disable-next-line no-console
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
 export interface CreateUserRequest {
   name: string;
   password: string;
-  roles: string[];
 }
 
-export type CreateUserResponse =
-  | {
-      status: "error";
-      message: string;
-    }
-  | {
-      status: "success";
-      id: string;
-      info: {
-        name: string;
-      };
-    };
+export interface CreateUserResponse {
+  id: string;
+}
 
 export type ListUsersResponse = User[];
 

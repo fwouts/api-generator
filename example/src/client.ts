@@ -1,9 +1,9 @@
 import axios from "axios";
 
-export async function createUser(
-  request: CreateUserRequest,
-): Promise<CreateUserResponse> {
-  const url = `https://api.test.com/users`;
+const URL = "https://api.test.com";
+
+export async function createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
+  const url = `${URL}/users`;
   const response = await axios.get(url, {
     data: request,
   });
@@ -11,13 +11,13 @@ export async function createUser(
 }
 
 export async function listUsers(): Promise<ListUsersResponse> {
-  const url = `https://api.test.com/users`;
+  const url = `${URL}/users`;
   const response = await axios.get(url);
   return response.data;
 }
 
 export async function getUser(id: string): Promise<User> {
-  const url = `https://api.test.com/users/${id}`;
+  const url = `${URL}/users/${id}`;
   const response = await axios.get(url);
   return response.data;
 }

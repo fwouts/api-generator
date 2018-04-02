@@ -1,8 +1,12 @@
 {
   "name": "example",
   "scripts": {
-    "server": "tsc && node dist/server.js",
-    "client": "tsc && node dist/client.js"
+    "build": "tsc",
+    "server": "ts-node src/server.ts",
+    "client": "ts-node src/client.ts",
+    "generate": "yarn generate-client && yarn generate-server",
+    "generate-client": "ts-node ../src/cli.ts generate typescript users.api -c https://api.test.com > src/client.ts",
+    "generate-server": "ts-node ../src/cli.ts generate typescript users.api -s > src/server.ts"
   },
   "dependencies": {
     "@types/axios": "^0.14.0",
@@ -11,6 +15,7 @@
     "express": "^4.16.3"
   },
   "devDependencies": {
+    "ts-node": "^5.0.1",
     "typescript": "^2.8.1"
   }
 }

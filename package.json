@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "rm -rf build && rm -f dist/cli.bundle.js dist/cli.bundle.js.map && tsc && webpack && cp build/cli.bundle.js.map dist/ && echo \"#!/usr/bin/env node\\n\" | cat - build/cli.bundle.js > dist/cli.bundle.js",
+    "generate-example": "cd example && yarn generate && yarn build",
     "publishnow": "yarn build && cd dist && yarn publish --access=public",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -51,7 +52,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn build && yarn test && lint-staged"
+      "pre-commit": "yarn generate-example && yarn build && yarn test && git add example && lint-staged"
     }
   },
   "lint-staged": {
