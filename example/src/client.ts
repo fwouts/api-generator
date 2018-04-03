@@ -1,8 +1,9 @@
 import axios from "axios";
+import * as api from "./api";
 
 const URL = "https://api.test.com";
 
-export async function createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
+export async function createUser(request: api.CreateUserRequest): Promise<api.CreateUserResponse> {
   const url = `${URL}/users`;
   const response = await axios({
     url,
@@ -12,7 +13,7 @@ export async function createUser(request: CreateUserRequest): Promise<CreateUser
   return response.data;
 }
 
-export async function listUsers(headers: AuthRequired): Promise<ListUsersResponse> {
+export async function listUsers(headers: api.AuthRequired): Promise<api.ListUsersResponse> {
   const url = `${URL}/users`;
   const response = await axios({
     url,
@@ -22,7 +23,7 @@ export async function listUsers(headers: AuthRequired): Promise<ListUsersRespons
   return response.data;
 }
 
-export async function getUser(headers: AuthRequired, id: string): Promise<User> {
+export async function getUser(headers: api.AuthRequired, id: string): Promise<api.User> {
   const url = `${URL}/users/${id}`;
   const response = await axios({
     url,
@@ -30,23 +31,4 @@ export async function getUser(headers: AuthRequired, id: string): Promise<User> 
     headers,
   });
   return response.data;
-}
-
-export interface CreateUserRequest {
-  name: string;
-  password: string;
-}
-
-export interface CreateUserResponse {
-  id: string;
-}
-
-export type ListUsersResponse = User[];
-
-export interface User {
-  name: string;
-}
-
-export interface AuthRequired {
-  Authorization: string;
 }

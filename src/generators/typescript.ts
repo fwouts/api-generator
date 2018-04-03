@@ -1,265 +1,295 @@
 import TextBuilder from "textbuilder";
 import { Endpoint, PRIMITIVE_TYPES, PrimitiveType, Type } from "../defs";
 import { EndpointDefinitions, TypeDefinitions } from "../resolver";
+import { Directory } from "./io";
 
 export interface GenerateOptions {
-  endpoints?:
-    | {
-        kind: "client";
-        baseUrl: string;
-      }
-    | {
-        kind: "server";
-      };
+  client?: {
+    baseUrl: string;
+  };
+  server?: {};
 }
 
 export function generateTypeScript(
   endpointDefinitions: EndpointDefinitions,
   typeDefinitions: TypeDefinitions,
   options: GenerateOptions = {},
-) {
-  const t = new TextBuilder();
-  let firstBlock = true;
-  if (options.endpoints && options.endpoints.kind === "client") {
-    if (options.endpoints.baseUrl.endsWith("/")) {
+): Directory {
+  const directory: Directory = {
+    kind: "directory",
+    children: {},
+  };
+  if (options.client) {
+    if (options.client.baseUrl.endsWith("/")) {
       throw new Error(`Base URL should not end with /.`);
     }
-    t.append('import axios from "axios";\n\n');
-    t.append(`const URL = \"${options.endpoints.baseUrl}\";\n\n`);
+    const clientBuilder = new TextBuilder();
+    clientBuilder.append('import axios from "axios";\n');
+    clientBuilder.append('import * as api from "./api";\n\n');
+    clientBuilder.append(`const URL = \"${options.client.baseUrl}\";\n`);
     for (const endpoint of Object.values(endpointDefinitions)) {
-      appendClientEndpoint(endpoint);
-      t.append("\n\n");
+      clientBuilder.append("\n");
+      appendClientEndpoint(clientBuilder, endpoint);
+      clientBuilder.append("\n");
     }
+    directory.children["client.ts"] = {
+      kind: "file",
+      content: clientBuilder.build(),
+    };
   }
-  if (options.endpoints && options.endpoints.kind === "server") {
-    t.append('import express from "express";\n');
+  if (options.server) {
+    const serverBuilder = new TextBuilder();
+    serverBuilder.append('import express from "express";\n');
+    serverBuilder.append('import * as api from "./api";\n');
     for (const endpoint of Object.values(endpointDefinitions)) {
-      t.append(
-        `import { ${endpoint.name} } from './endpoints/${endpoint.name}';\n`,
+      serverBuilder.append(
+        `import { ${endpoint.name} } from "./endpoints/${endpoint.name}";\n`,
       );
     }
-    t.append("\n");
-    t.append("const PORT = 3010;\n\n");
-    t.append("const app = express();\n\n");
+    serverBuilder.append("\n");
+    serverBuilder.append("const PORT = 3010;\n\n");
+    serverBuilder.append("const app = express();\n\n");
     for (const endpoint of Object.values(endpointDefinitions)) {
-      appendServerEndpoint(endpoint);
-      t.append("\n\n");
+      appendServerEndpoint(typeDefinitions, serverBuilder, endpoint);
+      serverBuilder.append("\n\n");
     }
-    t.append("// tslint:disable-next-line no-console\n");
-    t.append(
-      "app.listen(PORT, () => console.log(`Listening on port ${PORT}`));\n\n",
+    serverBuilder.append("// tslint:disable-next-line no-console\n");
+    serverBuilder.append(
+      "app.listen(PORT, () => console.log(`Listening on port ${PORT}`));\n",
     );
+    directory.children["server.ts"] = {
+      kind: "file",
+      content: serverBuilder.build(),
+    };
   }
+  let firstBlock = true;
+  const apiBuilder = new TextBuilder();
   for (const [name, type] of Object.entries(typeDefinitions)) {
     if (!firstBlock) {
-      t.append("\n");
+      apiBuilder.append("\n");
     }
-    appendType(type, name);
+    appendType(apiBuilder, type, name);
     firstBlock = false;
   }
-  return t.build();
+  directory.children["api.ts"] = {
+    kind: "file",
+    content: apiBuilder.build(),
+  };
+  return directory;
+}
 
-  function appendClientEndpoint(endpoint: Endpoint) {
-    const endpointArguments: string[] = [];
-    if (endpoint.headers) {
-      endpointArguments.push(`headers: ${endpoint.headers}`);
+function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
+  const endpointArguments: string[] = [];
+  if (endpoint.headers) {
+    endpointArguments.push(`headers: api.${endpoint.headers}`);
+  }
+  for (const subpath of endpoint.route) {
+    if (subpath.dynamic) {
+      endpointArguments.push(`${subpath.name}: string`);
     }
+  }
+  if (endpoint.input !== "void") {
+    endpointArguments.push(`request: api.${endpoint.input}`);
+  }
+  clientBuilder.append(
+    `export async function ${endpoint.name}(${endpointArguments.join(
+      ", ",
+    )}): Promise<${
+      endpoint.output === "void" ? "void" : `api.${endpoint.output}`
+    }> {`,
+  );
+  clientBuilder.indented(() => {
+    clientBuilder.append(`const url = \`\${URL}`);
     for (const subpath of endpoint.route) {
       if (subpath.dynamic) {
-        endpointArguments.push(`${subpath.name}: string`);
+        clientBuilder.append(`/\${${subpath.name}}`);
+      } else {
+        clientBuilder.append(`/${subpath.name}`);
       }
     }
-    if (endpoint.input !== "void") {
-      endpointArguments.push(`request: ${endpoint.input}`);
+    clientBuilder.append("`;\n");
+    if (endpoint.output !== "void") {
+      clientBuilder.append("const response = ");
     }
-    t.append(
-      `export async function ${endpoint.name}(${endpointArguments.join(
-        ", ",
-      )}): Promise<${endpoint.output}> {`,
-    );
-    t.indented(() => {
-      t.append(`const url = \`\${URL}`);
+    clientBuilder.append(`await axios({`);
+    clientBuilder.indented(() => {
+      clientBuilder.append("url,\n");
+      clientBuilder.append(`method: "${endpoint.method}",\n`);
+      if (endpoint.input !== "void") {
+        clientBuilder.append("data: request,\n");
+      }
+      if (endpoint.headers) {
+        clientBuilder.append("headers,\n");
+      }
+    });
+    clientBuilder.append("});\n");
+    if (endpoint.output !== "void") {
+      clientBuilder.append("return response.data;\n");
+    }
+  });
+  clientBuilder.append("}");
+}
+
+function appendServerEndpoint(
+  typeDefinitions: TypeDefinitions,
+  serverBuilder: TextBuilder,
+  endpoint: Endpoint,
+) {
+  const path = endpoint.route
+    .map((subpath) => {
+      if (subpath.dynamic) {
+        return ":" + subpath.name;
+      } else {
+        return subpath.name;
+      }
+    })
+    .join("/");
+  serverBuilder.append(
+    `app.${endpoint.method.toLowerCase()}("/${path}", async (req, res, next) => {`,
+  );
+  serverBuilder.indented(() => {
+    serverBuilder.append("try {");
+    serverBuilder.indented(() => {
+      const args: string[] = [];
+      if (endpoint.headers) {
+        args.push("headers");
+        serverBuilder.append(`const headers: api.${endpoint.headers} = {`);
+        serverBuilder.indented(() => {
+          const headersType = typeDefinitions[endpoint.headers!];
+          if (
+            typeof headersType === "string" ||
+            headersType.kind !== "struct"
+          ) {
+            throw new Error(
+              `Headers type ${endpoint.headers} must be a struct.`,
+            );
+          }
+          for (const [fieldName, fieldType] of Object.entries(
+            headersType.items,
+          )) {
+            if (fieldType === "string") {
+              // TODO: Fail if the header is not set or empty.
+              serverBuilder.append(
+                `${fieldName}: req.header("${fieldName}") || "",\n`,
+              );
+            } else if (
+              typeof fieldType === "object" &&
+              fieldType.kind === "optional" &&
+              fieldType.type === "string"
+            ) {
+              serverBuilder.append(
+                `${fieldName}: req.header("${fieldName}"),\n`,
+              );
+            } else {
+              throw new Error(`Header ${fieldName} must be a string.`);
+            }
+          }
+        });
+        serverBuilder.append(`};\n`);
+      }
       for (const subpath of endpoint.route) {
         if (subpath.dynamic) {
-          t.append(`/\${${subpath.name}}`);
-        } else {
-          t.append(`/${subpath.name}`);
+          serverBuilder.append(
+            `const ${subpath.name} = req.params["${subpath.name}"];\n`,
+          );
+          args.push(subpath.name);
         }
       }
-      t.append("`;\n");
+      // TODO: Double check input structure.
+      if (endpoint.input !== "void") {
+        args.push("request");
+        serverBuilder.append(
+          `const request: api.${endpoint.input} = req.body;\n`,
+        );
+      }
       if (endpoint.output !== "void") {
-        t.append("const response = ");
+        serverBuilder.append(`const response: api.${endpoint.output} = `);
       }
-      t.append(`await axios({`);
-      t.indented(() => {
-        t.append("url,\n");
-        t.append(`method: "${endpoint.method}",\n`);
-        if (endpoint.input !== "void") {
-          t.append("data: request,\n");
-        }
-        if (endpoint.headers) {
-          t.append("headers,\n");
-        }
-      });
-      t.append("});\n");
+      serverBuilder.append(`await ${endpoint.name}(${args.join(", ")});\n`);
       if (endpoint.output !== "void") {
-        t.append("return response.data;\n");
-      }
-    });
-    t.append("}");
-  }
-
-  function appendServerEndpoint(endpoint: Endpoint) {
-    const path = endpoint.route
-      .map((subpath) => {
-        if (subpath.dynamic) {
-          return ":" + subpath.name;
-        } else {
-          return subpath.name;
-        }
-      })
-      .join("/");
-    t.append(
-      `app.${endpoint.method.toLowerCase()}("/${path}", async (req, res, next) => {`,
-    );
-    t.indented(() => {
-      t.append("try {");
-      t.indented(() => {
-        const args: string[] = [];
-        if (endpoint.headers) {
-          args.push("headers");
-          t.append(`const headers: ${endpoint.headers} = {`);
-          t.indented(() => {
-            const headersType = typeDefinitions[endpoint.headers!];
-            if (
-              typeof headersType === "string" ||
-              headersType.kind !== "struct"
-            ) {
-              throw new Error(
-                `Headers type ${endpoint.headers} must be a struct.`,
-              );
-            }
-            for (const [fieldName, fieldType] of Object.entries(
-              headersType.items,
-            )) {
-              if (fieldType === "string") {
-                // TODO: Fail if the header is not set or empty.
-                t.append(`${fieldName}: req.header("${fieldName}") || "",\n`);
-              } else if (
-                typeof fieldType === "object" &&
-                fieldType.kind === "optional" &&
-                fieldType.type === "string"
-              ) {
-                t.append(`${fieldName}: req.header("${fieldName}"),\n`);
-              } else {
-                throw new Error(`Header ${fieldName} must be a string.`);
-              }
-            }
-          });
-          t.append(`};\n`);
-        }
-        for (const subpath of endpoint.route) {
-          if (subpath.dynamic) {
-            t.append(
-              `const ${subpath.name} = req.params["${subpath.name}"];\n`,
-            );
-            args.push(subpath.name);
-          }
-        }
-        // TODO: Double check input structure.
-        if (endpoint.input !== "void") {
-          args.push("request");
-          t.append(`const request: ${endpoint.input} = req.body;\n`);
-        }
-        if (endpoint.output !== "void") {
-          t.append(`const response: ${endpoint.output} = `);
-        }
-        t.append(`await ${endpoint.name}(${args.join(", ")});\n`);
-        if (endpoint.output !== "void") {
-          t.append(`res.json(response);\n`);
-        } else {
-          t.append("res.end();\n");
-        }
-      });
-      t.append("} catch (err) {");
-      t.indented(() => {
-        t.append("next(err);");
-      });
-      t.append("}");
-    });
-    t.append("});");
-  }
-
-  function appendType(type: Type, exported?: string) {
-    if (typeof type === "string") {
-      // TypeName.
-      if (exported) {
-        t.append(`export type ${exported} = `);
-      }
-      if (PRIMITIVE_TYPES.has(type)) {
-        t.append(primitiveTypeToTypeScript(type as PrimitiveType));
+        serverBuilder.append(`res.json(response);\n`);
       } else {
-        t.append(type);
+        serverBuilder.append("res.end();\n");
       }
-      if (exported) {
-        t.append(";\n");
-      }
-    } else if (type.kind === "array") {
-      if (exported) {
-        t.append(`export type ${exported} = `);
-      }
-      appendType(type.items);
-      t.append("[]");
-      if (exported) {
-        t.append(";\n");
-      }
-    } else if (type.kind === "union") {
-      if (exported) {
-        t.append(`export type ${exported} = `);
-      }
-      let first = true;
-      for (const possibleType of type.items) {
-        if (!first) {
-          t.append(" | ");
-        }
-        appendType(possibleType);
-        first = false;
-      }
-      if (exported) {
-        t.append(";\n");
-      }
-    } else if (type.kind === "struct") {
-      if (exported) {
-        t.append(`export interface ${exported} `);
-      }
-      t.append("{");
-      t.indented(() => {
-        for (const [fieldName, fieldType] of Object.entries(type.items)) {
-          if (typeof fieldType !== "string" && fieldType.kind === "optional") {
-            t.append(fieldName, "?: ");
-            appendType(fieldType.type);
-          } else {
-            t.append(fieldName, ": ");
-            appendType(fieldType);
-          }
-          t.append(";\n");
-        }
-      });
-      t.append("}");
-      if (exported) {
-        t.append("\n");
-      }
-    } else if (type.kind === "symbol") {
-      if (exported) {
-        t.append(`export type ${exported} = `);
-      }
-      t.append(`'${type.value}'`);
-      if (exported) {
-        t.append(";\n");
-      }
-    } else {
-      throw new Error();
+    });
+    serverBuilder.append("} catch (err) {");
+    serverBuilder.indented(() => {
+      serverBuilder.append("next(err);");
+    });
+    serverBuilder.append("}");
+  });
+  serverBuilder.append("});");
+}
+
+function appendType(apiBuilder: TextBuilder, type: Type, exported?: string) {
+  if (typeof type === "string") {
+    // TypeName.
+    if (exported) {
+      apiBuilder.append(`export type ${exported} = `);
     }
+    if (PRIMITIVE_TYPES.has(type)) {
+      apiBuilder.append(primitiveTypeToTypeScript(type as PrimitiveType));
+    } else {
+      apiBuilder.append(type);
+    }
+    if (exported) {
+      apiBuilder.append(";\n");
+    }
+  } else if (type.kind === "array") {
+    if (exported) {
+      apiBuilder.append(`export type ${exported} = `);
+    }
+    appendType(apiBuilder, type.items);
+    apiBuilder.append("[]");
+    if (exported) {
+      apiBuilder.append(";\n");
+    }
+  } else if (type.kind === "union") {
+    if (exported) {
+      apiBuilder.append(`export type ${exported} = `);
+    }
+    let first = true;
+    for (const possibleType of type.items) {
+      if (!first) {
+        apiBuilder.append(" | ");
+      }
+      appendType(apiBuilder, possibleType);
+      first = false;
+    }
+    if (exported) {
+      apiBuilder.append(";\n");
+    }
+  } else if (type.kind === "struct") {
+    if (exported) {
+      apiBuilder.append(`export interface ${exported} `);
+    }
+    apiBuilder.append("{");
+    apiBuilder.indented(() => {
+      for (const [fieldName, fieldType] of Object.entries(type.items)) {
+        if (typeof fieldType !== "string" && fieldType.kind === "optional") {
+          apiBuilder.append(fieldName, "?: ");
+          appendType(apiBuilder, fieldType.type);
+        } else {
+          apiBuilder.append(fieldName, ": ");
+          appendType(apiBuilder, fieldType);
+        }
+        apiBuilder.append(";\n");
+      }
+    });
+    apiBuilder.append("}");
+    if (exported) {
+      apiBuilder.append("\n");
+    }
+  } else if (type.kind === "symbol") {
+    if (exported) {
+      apiBuilder.append(`export type ${exported} = `);
+    }
+    apiBuilder.append(`'${type.value}'`);
+    if (exported) {
+      apiBuilder.append(";\n");
+    }
+  } else {
+    throw new Error();
   }
 }
 

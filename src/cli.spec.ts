@@ -1,6 +1,32 @@
-import * as fs from "fs";
+import fs from "fs-extra";
 import "jest";
+import path from "path";
+import uuid from "uuid";
 import { cli } from "./cli";
+import { input } from "./generators/io";
+
+function createApi(text: string) {
+  const name = `input-${uuid.v4()}.api`;
+  const destination = path.join("test-input", name);
+  fs.outputFileSync(destination, text);
+  return destination;
+}
+
+function prepareOutput() {
+  return path.join("test-output", uuid.v4());
+}
+
+beforeAll(() => {
+  fs.removeSync("test-input");
+  fs.removeSync("test-output");
+  fs.mkdirSync("test-input");
+  fs.mkdirSync("test-output");
+});
+
+afterAll(() => {
+  fs.removeSync("test-input");
+  fs.removeSync("test-output");
+});
 
 test("cli fails for unknown commands", () => {
   const env = runCli("some-command");
@@ -13,49 +39,60 @@ test("cli fails for unknown commands", () => {
 });
 
 test("cli generates output (types only)", () => {
-  const cleanup = testfile(
-    "test.api",
-    `
+  const apiSource = createApi(`
 type a = string;
+`);
+  const outputDestination = prepareOutput();
+  const env = runCli(`generate typescript ${apiSource} ${outputDestination}`);
+  expect(env.messages).toEqual([
+    {
+      type: "info",
+      messages: [`API generated at ${outputDestination}.`],
+    },
+  ]);
+  expect(input(outputDestination)).toEqual({
+    kind: "directory",
+    children: {
+      "api.ts": {
+        kind: "file",
+        content: `export type a = string;
 `,
-  );
-  try {
-    const env = runCli("generate typescript test.api");
-    expect(env.messages).toEqual([
-      {
-        type: "info",
-        messages: [
-          `export type a = string;
-`,
-        ],
       },
-    ]);
-  } finally {
-    cleanup();
-  }
+    },
+  });
 });
 
 test("cli generates output (client)", () => {
-  const cleanup = testfile(
-    "test.api",
-    `
+  const apiSource = createApi(`
 endpoint endpoint: POST /endpoint void -> a
 type a = string;
-`,
+`);
+  const outputDestination = prepareOutput();
+  const env = runCli(
+    `generate typescript ${apiSource} ${outputDestination} --client https://api.test.com`,
   );
-  try {
-    const env = runCli(
-      "generate typescript test.api --client https://api.test.com",
-    );
-    expect(env.messages).toEqual([
-      {
-        type: "info",
-        messages: [
-          `import axios from \"axios\";
+  expect(env.messages).toEqual([
+    {
+      type: "info",
+      messages: [`API generated at ${outputDestination}.`],
+    },
+  ]);
+  expect(input(outputDestination)).toEqual({
+    kind: "directory",
+    children: {
+      "api.ts": {
+        kind: "file",
+        content: `export type a = string;
+`,
+      },
+      "client.ts": {
+        kind: "file",
+        content: `import axios from "axios";
+import * as api from "./api";
 
-const URL = \"https://api.test.com\";
+const URL = "https://api.test.com";
 
-export async function endpoint(): Promise<a> {
+export async function endpoint(): Promise<api.a> {
   const url = \`\${URL}/endpoint\`;
   const response = await axios({
     url,
@@ -63,41 +100,48 @@ export async function endpoint(): Promise<a> {
   });
   return response.data;
 }
-
-export type a = string;
 `,
-        ],
       },
-    ]);
-  } finally {
-    cleanup();
-  }
+    },
+  });
 });
 
 test("cli generates output (server)", () => {
-  const cleanup = testfile(
-    "test.api",
-    `
+  const apiSource = createApi(`
 endpoint endpoint: POST /endpoint void -> a
 type a = string;
-`,
+`);
+  const outputDestination = prepareOutput();
+  const env = runCli(
+    `generate typescript ${apiSource} ${outputDestination} --server`,
   );
-  try {
-    const env = runCli("generate typescript test.api --server");
-    expect(env.messages).toEqual([
-      {
-        type: "info",
-        messages: [
-          `import express from "express";
-import { endpoint } from './endpoints/endpoint';
+  expect(env.messages).toEqual([
+    {
+      type: "info",
+      messages: [`API generated at ${outputDestination}.`],
+    },
+  ]);
+  expect(input(outputDestination)).toEqual({
+    kind: "directory",
+    children: {
+      "api.ts": {
+        kind: "file",
+        content: `export type a = string;
+`,
+      },
+      "server.ts": {
+        kind: "file",
+        content: `import express from "express";
+import * as api from "./api";
+import { endpoint } from "./endpoints/endpoint";
 
 const PORT = 3010;
 
 const app = express();
 
-app.post(\"/endpoint\", async (req, res, next) => {
+app.post("/endpoint", async (req, res, next) => {
   try {
-    const response: a = await endpoint();
+    const response: api.a = await endpoint();
     res.json(response);
   } catch (err) {
     next(err);
@@ -106,19 +150,17 @@ app.post(\"/endpoint\", async (req, res, next) => {
 
 // tslint:disable-next-line no-console
 app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
-
-export type a = string;
 `,
-        ],
       },
-    ]);
-  } finally {
-    cleanup();
-  }
+    },
+  });
 });
 
 test("cli fails with missing file", () => {
-  const env = runCli("generate typescript doesnotexist.api");
+  const outputDestination = prepareOutput();
+  const env = runCli(
+    `generate typescript doesnotexist.api ${outputDestination}`,
+  );
   expect(env.messages).toEqual([
     {
       type: "error",
@@ -128,31 +170,18 @@ test("cli fails with missing file", () => {
 });
 
 test("cli fails with unknown generator", () => {
-  const cleanup = testfile(
-    "test.api",
-    `
+  const apiSource = createApi(`
 type a = string;
-`,
-  );
-  try {
-    const env = runCli("generate cpp test.api");
-    expect(env.messages).toEqual([
-      {
-        type: "error",
-        messages: ["Unknown target: cpp."],
-      },
-    ]);
-  } finally {
-    cleanup();
-  }
+`);
+  const outputDestination = prepareOutput();
+  const env = runCli(`generate cpp ${apiSource} ${outputDestination}`);
+  expect(env.messages).toEqual([
+    {
+      type: "error",
+      messages: ["Unknown target: cpp."],
+    },
+  ]);
 });
-
-function testfile(filename: string, text: string): () => void {
-  fs.writeFileSync(filename, text, "utf8");
-  return () => {
-    fs.unlinkSync(filename);
-  };
-}
 
 function runCli(command: string) {
   const messages: Array<{

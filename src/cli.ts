@@ -1,5 +1,6 @@
-import program from "commander";
-import * as fs from "fs";
+import { Command } from "commander";
+import fs from "fs-extra";
+import { output } from "./generators/io";
 import { GenerateOptions, generateTypeScript } from "./generators/typescript";
 import { parse } from "./parser";
 import { resolve } from "./resolver";
@@ -12,14 +13,17 @@ export interface Environment {
 }
 
 export function cli(env: Environment) {
+  const program = new Command();
+
   program
-    .command("generate <target> <source>")
+    .command("generate <target> <source> <destination>")
     .option("-c, --client <base-url>")
     .option("-s, --server")
     .action(
       (
         target: string,
         source: string,
+        destination: string,
         options: {
           client?: string;
           server?: true;
@@ -41,21 +45,20 @@ export function cli(env: Environment) {
               }
               const generateOptions: GenerateOptions = {};
               if (options.client) {
-                generateOptions.endpoints = {
-                  kind: "client",
+                generateOptions.client = {
                   baseUrl: options.client,
                 };
-              } else if (options.server) {
-                generateOptions.endpoints = {
-                  kind: "server",
-                };
+              }
+              if (options.server) {
+                generateOptions.server = {};
               }
               const generated = generateTypeScript(
                 result.definedEndpoints,
                 result.definedTypes,
                 generateOptions,
               );
-              env.info(generated);
+              output(generated, destination);
+              env.info(`API generated at ${destination}.`);
               break;
             default:
               env.error(`Unknown target: ${target}.`);

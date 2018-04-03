@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@types/jest": "^22.2.2",
+    "@types/uuid": "^3.4.3",
     "antlr4ts-cli": "^0.4.0-alpha.4",
     "husky": "^0.15.0-rc.13",
     "jest": "^22.4.3",
@@ -40,14 +41,17 @@
     "tslint": "^5.9.1",
     "typescript": "^2.8.1",
     "uglifyjs-webpack-plugin": "^1.2.4",
+    "uuid": "^3.2.1",
     "webpack": "^4.4.1",
     "webpack-cli": "^2.0.13"
   },
   "dependencies": {
     "@types/commander": "^2.12.2",
+    "@types/fs-extra": "^5.0.1",
     "@types/node": "^9.6.1",
     "antlr4ts": "0.4.0-alpha.4",
     "commander": "^2.15.1",
+    "fs-extra": "^5.0.0",
     "textbuilder": "^1.0.3"
   },
   "husky": {

@@ -1,4 +1,5 @@
 import express from "express";
+import * as api from "./api";
 import { createUser } from "./endpoints/createUser";
 import { getUser } from "./endpoints/getUser";
 import { listUsers } from "./endpoints/listUsers";
@@ -9,8 +10,8 @@ const app = express();
 
 app.post("/users", async (req, res, next) => {
   try {
-    const request: CreateUserRequest = req.body;
-    const response: CreateUserResponse = await createUser(request);
+    const request: api.CreateUserRequest = req.body;
+    const response: api.CreateUserResponse = await createUser(request);
     res.json(response);
   } catch (err) {
     next(err);
@@ -19,10 +20,10 @@ app.post("/users", async (req, res, next) => {
 
 app.get("/users", async (req, res, next) => {
   try {
-    const headers: AuthRequired = {
+    const headers: api.AuthRequired = {
       Authorization: req.header("Authorization") || "",
     };
-    const response: ListUsersResponse = await listUsers(headers);
+    const response: api.ListUsersResponse = await listUsers(headers);
     res.json(response);
   } catch (err) {
     next(err);
@@ -31,11 +32,11 @@ app.get("/users", async (req, res, next) => {
 
 app.get("/users/:id", async (req, res, next) => {
   try {
-    const headers: AuthRequired = {
+    const headers: api.AuthRequired = {
       Authorization: req.header("Authorization") || "",
     };
     const id = req.params.id;
-    const response: User = await getUser(headers, id);
+    const response: api.User = await getUser(headers, id);
     res.json(response);
   } catch (err) {
     next(err);
@@ -44,22 +45,3 @@ app.get("/users/:id", async (req, res, next) => {
 
 // tslint:disable-next-line no-console
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
-
-export interface CreateUserRequest {
-  name: string;
-  password: string;
-}
-
-export interface CreateUserResponse {
-  id: string;
-}
-
-export type ListUsersResponse = User[];
-
-export interface User {
-  name: string;
-}
-
-export interface AuthRequired {
-  Authorization: string;
-}

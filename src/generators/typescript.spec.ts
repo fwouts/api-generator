@@ -56,8 +56,12 @@ test("generator only types", () => {
   if (API.kind !== "success") {
     throw new Error(`Invalid test data:\n${API.errors.join("\n")}`);
   }
-  expect(generateTypeScript(API.definedEndpoints, API.definedTypes))
-    .toEqual(`export interface CreateUserRequest {
+  expect(generateTypeScript(API.definedEndpoints, API.definedTypes)).toEqual({
+    kind: "directory",
+    children: {
+      "api.ts": {
+        kind: "file",
+        content: `export interface CreateUserRequest {
   name: string;
   password?: string;
   roles: string[];
@@ -87,7 +91,10 @@ export interface AuthOptional {
 export interface AuthRequired {
   Authorization: string;
 }
-`);
+`,
+      },
+    },
+  });
 });
 
 test("generator with client", () => {
@@ -96,16 +103,21 @@ test("generator with client", () => {
   }
   expect(
     generateTypeScript(API.definedEndpoints, API.definedTypes, {
-      endpoints: {
-        kind: "client",
+      client: {
         baseUrl: "https://api.test.com",
       },
     }),
-  ).toEqual(`import axios from "axios";
+  ).toEqual({
+    kind: "directory",
+    children: {
+      "client.ts": {
+        kind: "file",
+        content: `import axios from "axios";
+import * as api from "./api";
 
 const URL = "https://api.test.com";
 
-export async function createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
+export async function createUser(request: api.CreateUserRequest): Promise<api.CreateUserResponse> {
   const url = \`\${URL}/users\`;
   const response = await axios({
     url,
@@ -115,7 +127,7 @@ export async function createUser(request: CreateUserRequest): Promise<CreateUser
   return response.data;
 }
 
-export async function listUsers(headers: AuthOptional): Promise<ListUsersResponse> {
+export async function listUsers(headers: api.AuthOptional): Promise<api.ListUsersResponse> {
   const url = \`\${URL}/users\`;
   const response = await axios({
     url,
@@ -125,7 +137,7 @@ export async function listUsers(headers: AuthOptional): Promise<ListUsersRespons
   return response.data;
 }
 
-export async function getUser(headers: AuthRequired, id: string): Promise<User> {
+export async function getUser(headers: api.AuthRequired, id: string): Promise<api.User> {
   const url = \`\${URL}/users/\${id}\`;
   const response = await axios({
     url,
@@ -135,7 +147,7 @@ export async function getUser(headers: AuthRequired, id: string): Promise<User> 
   return response.data;
 }
 
-export async function deleteUser(headers: AuthRequired, id: string): Promise<void> {
+export async function deleteUser(headers: api.AuthRequired, id: string): Promise<void> {
   const url = \`\${URL}/users/\${id}\`;
   await axios({
     url,
@@ -143,8 +155,11 @@ export async function deleteUser(headers: AuthRequired, id: string): Promise<voi
     headers,
   });
 }
-
-export interface CreateUserRequest {
+`,
+      },
+      "api.ts": {
+        kind: "file",
+        content: `export interface CreateUserRequest {
   name: string;
   password?: string;
   roles: string[];
@@ -174,7 +189,10 @@ export interface AuthOptional {
 export interface AuthRequired {
   Authorization: string;
 }
-`);
+`,
+      },
+    },
+  });
 });
 
 test("generator with server", () => {
@@ -183,15 +201,19 @@ test("generator with server", () => {
   }
   expect(
     generateTypeScript(API.definedEndpoints, API.definedTypes, {
-      endpoints: {
-        kind: "server",
-      },
+      server: {},
     }),
-  ).toEqual(`import express from "express";
-import { createUser } from './endpoints/createUser';
-import { listUsers } from './endpoints/listUsers';
-import { getUser } from './endpoints/getUser';
-import { deleteUser } from './endpoints/deleteUser';
+  ).toEqual({
+    kind: "directory",
+    children: {
+      "server.ts": {
+        kind: "file",
+        content: `import express from "express";
+import * as api from "./api";
+import { createUser } from "./endpoints/createUser";
+import { listUsers } from "./endpoints/listUsers";
+import { getUser } from "./endpoints/getUser";
+import { deleteUser } from "./endpoints/deleteUser";
 
 const PORT = 3010;
 
@@ -199,8 +221,8 @@ const app = express();
 
 app.post("/users", async (req, res, next) => {
   try {
-    const request: CreateUserRequest = req.body;
-    const response: CreateUserResponse = await createUser(request);
+    const request: api.CreateUserRequest = req.body;
+    const response: api.CreateUserResponse = await createUser(request);
     res.json(response);
   } catch (err) {
     next(err);
@@ -209,10 +231,10 @@ app.post("/users", async (req, res, next) => {
 
 app.get("/users", async (req, res, next) => {
   try {
-    const headers: AuthOptional = {
+    const headers: api.AuthOptional = {
       Authorization: req.header("Authorization"),
     };
-    const response: ListUsersResponse = await listUsers(headers);
+    const response: api.ListUsersResponse = await listUsers(headers);
     res.json(response);
   } catch (err) {
     next(err);
@@ -221,11 +243,11 @@ app.get("/users", async (req, res, next) => {
 
 app.get("/users/:id", async (req, res, next) => {
   try {
-    const headers: AuthRequired = {
+    const headers: api.AuthRequired = {
       Authorization: req.header("Authorization") || "",
     };
     const id = req.params["id"];
-    const response: User = await getUser(headers, id);
+    const response: api.User = await getUser(headers, id);
     res.json(response);
   } catch (err) {
     next(err);
@@ -234,7 +256,7 @@ app.get("/users/:id", async (req, res, next) => {
 
 app.delete("/users/:id", async (req, res, next) => {
   try {
-    const headers: AuthRequired = {
+    const headers: api.AuthRequired = {
       Authorization: req.header("Authorization") || "",
     };
     const id = req.params["id"];
@@ -247,8 +269,11 @@ app.delete("/users/:id", async (req, res, next) => {
 
 // tslint:disable-next-line no-console
 app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
-
-export interface CreateUserRequest {
+`,
+      },
+      "api.ts": {
+        kind: "file",
+        content: `export interface CreateUserRequest {
   name: string;
   password?: string;
   roles: string[];
@@ -278,5 +303,8 @@ export interface AuthOptional {
 export interface AuthRequired {
   Authorization: string;
 }
-`);
+`,
+      },
+    },
+  });
 });

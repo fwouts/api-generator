@@ -1,4 +1,4 @@
-import { AuthRequired, User } from "../server";
+import { AuthRequired, User } from "../api";
 
 export async function getUser(
   headers: AuthRequired,

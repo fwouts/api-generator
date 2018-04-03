@@ -1,4 +1,4 @@
-import { CreateUserRequest, CreateUserResponse } from "../server";
+import { CreateUserRequest, CreateUserResponse } from "../api";
 
 export async function createUser(
   request: CreateUserRequest,
