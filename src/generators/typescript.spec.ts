@@ -305,6 +305,51 @@ export interface AuthRequired {
 }
 `,
       },
+      "endpoints": {
+        children: {
+          "createUser.ts": {
+            content: `import { CreateUserRequest, CreateUserResponse } from "../api";
+
+export async function createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
+  throw new Error("Unimplemented.");
+}
+`,
+            doNotOverride: true,
+            kind: "file",
+          },
+          "deleteUser.ts": {
+            content: `import { AuthRequired } from "../api";
+
+export async function deleteUser(headers: AuthRequired, id: string): Promise<void> {
+  throw new Error("Unimplemented.");
+}
+`,
+            doNotOverride: true,
+            kind: "file",
+          },
+          "getUser.ts": {
+            content: `import { AuthRequired, User } from "../api";
+
+export async function getUser(headers: AuthRequired, id: string): Promise<User> {
+  throw new Error("Unimplemented.");
+}
+`,
+            doNotOverride: true,
+            kind: "file",
+          },
+          "listUsers.ts": {
+            content: `import { AuthOptional, ListUsersResponse } from "../api";
+
+export async function listUsers(headers: AuthOptional): Promise<ListUsersResponse> {
+  throw new Error("Unimplemented.");
+}
+`,
+            doNotOverride: true,
+            kind: "file",
+          },
+        },
+        kind: "directory",
+      },
     },
   });
 });

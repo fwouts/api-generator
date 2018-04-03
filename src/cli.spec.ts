@@ -152,6 +152,20 @@ app.post("/endpoint", async (req, res, next) => {
 app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
 `,
       },
+      "endpoints": {
+        kind: "directory",
+        children: {
+          "endpoint.ts": {
+            kind: "file",
+            content: `import { a } from "../api";
+
+export async function endpoint(): Promise<a> {
+  throw new Error("Unimplemented.");
+}
+`,
+          },
+        },
+      },
     },
   });
 });

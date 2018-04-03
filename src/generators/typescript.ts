@@ -38,6 +38,11 @@ export function generateTypeScript(
     };
   }
   if (options.server) {
+    const endpointsDirectory: Directory = {
+      kind: "directory",
+      children: {},
+    };
+    directory.children.endpoints = endpointsDirectory;
     const serverBuilder = new TextBuilder();
     serverBuilder.append('import express from "express";\n');
     serverBuilder.append('import * as api from "./api";\n');
@@ -51,6 +56,11 @@ export function generateTypeScript(
     serverBuilder.append("const app = express();\n\n");
     for (const endpoint of Object.values(endpointDefinitions)) {
       appendServerEndpoint(typeDefinitions, serverBuilder, endpoint);
+      endpointsDirectory.children[endpoint.name + ".ts"] = {
+        kind: "file",
+        content: generateEndpointImplementation(typeDefinitions, endpoint),
+        doNotOverride: true,
+      };
       serverBuilder.append("\n\n");
     }
     serverBuilder.append("// tslint:disable-next-line no-console\n");
@@ -219,6 +229,46 @@ function appendServerEndpoint(
     serverBuilder.append("}");
   });
   serverBuilder.append("});");
+}
+
+function generateEndpointImplementation(
+  typeDefinitions: TypeDefinitions,
+  endpoint: Endpoint,
+): string {
+  const codeBuilder = new TextBuilder();
+  const args: string[] = [];
+  const importedTypes: string[] = [];
+  if (endpoint.headers) {
+    args.push(`headers: ${endpoint.headers}`);
+    importedTypes.push(endpoint.headers);
+  }
+  for (const subpath of endpoint.route) {
+    if (subpath.dynamic) {
+      args.push(`${subpath.name}: string`);
+    }
+  }
+  if (endpoint.input !== "void") {
+    args.push(`request: ${endpoint.input}`);
+    importedTypes.push(endpoint.input);
+  }
+  if (endpoint.output !== "void") {
+    importedTypes.push(endpoint.output);
+  }
+  if (importedTypes.length > 0) {
+    codeBuilder.append(
+      `import { ${importedTypes.join(", ")} } from "../api";\n\n`,
+    );
+  }
+  codeBuilder.append(
+    `export async function ${endpoint.name}(${args.join(", ")}): Promise<${
+      endpoint.output
+    }> {`,
+  );
+  codeBuilder.indented(() => {
+    codeBuilder.append(`throw new Error("Unimplemented.");`);
+  });
+  codeBuilder.append(`}\n`);
+  return codeBuilder.build();
 }
 
 function appendType(apiBuilder: TextBuilder, type: Type, exported?: string) {

@@ -11,6 +11,7 @@ export interface Directory {
 export interface File {
   kind: "file";
   content: string;
+  doNotOverride?: boolean;
 }
 
 export function output(item: File | Directory, destination: string) {
@@ -18,7 +19,7 @@ export function output(item: File | Directory, destination: string) {
     for (const [childName, child] of Object.entries(item.children)) {
       output(child, path.join(destination, childName));
     }
-  } else {
+  } else if (!fs.existsSync(destination) || !item.doNotOverride) {
     fs.outputFileSync(destination, item.content);
   }
 }
