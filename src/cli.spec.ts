@@ -58,6 +58,14 @@ type a = string;
         content: `export type a = string;
 `,
       },
+      "validation.ts": {
+        kind: "file",
+        content: `export function validate_a(value: any): boolean {
+  return typeof value === 'string';
+}
+
+`,
+      },
     },
   });
 });
@@ -85,10 +93,19 @@ type a = string;
         content: `export type a = string;
 `,
       },
+      "validation.ts": {
+        kind: "file",
+        content: `export function validate_a(value: any): boolean {
+  return typeof value === 'string';
+}
+
+`,
+      },
       "client.ts": {
         kind: "file",
         content: `import axios from "axios";
 import * as api from "./api";
+import * as validation from "./validation";
 
 const URL = "https://api.test.com";
 
@@ -98,6 +115,9 @@ export async function endpoint(): Promise<api.a> {
     url,
     method: "POST",
   });
+  if (!validation.validate_a(response)) {
+    throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+  }
   return response.data;
 }
 `,
@@ -129,10 +149,19 @@ type a = string;
         content: `export type a = string;
 `,
       },
+      "validation.ts": {
+        kind: "file",
+        content: `export function validate_a(value: any): boolean {
+  return typeof value === 'string';
+}
+
+`,
+      },
       "server.ts": {
         kind: "file",
         content: `import express from "express";
 import * as api from "./api";
+import * as validation from "./validation";
 import { endpoint } from "./endpoints/endpoint";
 
 const PORT = 3010;
@@ -142,6 +171,9 @@ const app = express();
 app.post("/endpoint", async (req, res, next) => {
   try {
     const response: api.a = await endpoint();
+    if (!validation.validate_a(response)) {
+      throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+    }
     res.json(response);
   } catch (err) {
     next(err);

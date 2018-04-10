@@ -25,7 +25,8 @@ export function generateTypeScript(
     }
     const clientBuilder = new TextBuilder();
     clientBuilder.append('import axios from "axios";\n');
-    clientBuilder.append('import * as api from "./api";\n\n');
+    clientBuilder.append('import * as api from "./api";\n');
+    clientBuilder.append('import * as validation from "./validation";\n\n');
     clientBuilder.append(`const URL = \"${options.client.baseUrl}\";\n`);
     for (const endpoint of Object.values(endpointDefinitions)) {
       clientBuilder.append("\n");
@@ -46,6 +47,7 @@ export function generateTypeScript(
     const serverBuilder = new TextBuilder();
     serverBuilder.append('import express from "express";\n');
     serverBuilder.append('import * as api from "./api";\n');
+    serverBuilder.append('import * as validation from "./validation";\n');
     for (const endpoint of Object.values(endpointDefinitions)) {
       serverBuilder.append(
         `import { ${endpoint.name} } from "./endpoints/${endpoint.name}";\n`,
@@ -72,18 +74,26 @@ export function generateTypeScript(
       content: serverBuilder.build(),
     };
   }
-  let firstBlock = true;
+  let apiFirstBlock = true;
   const apiBuilder = new TextBuilder();
   for (const [name, type] of Object.entries(typeDefinitions)) {
-    if (!firstBlock) {
+    if (!apiFirstBlock) {
       apiBuilder.append("\n");
     }
-    appendType(apiBuilder, type, name);
-    firstBlock = false;
+    appendType(apiBuilder, type, name, true);
+    apiFirstBlock = false;
   }
   directory.children["api.ts"] = {
     kind: "file",
     content: apiBuilder.build(),
+  };
+  const validationBuilder = new TextBuilder();
+  for (const [name, type] of Object.entries(typeDefinitions)) {
+    appendValidateMethods(validationBuilder, type, name);
+  }
+  directory.children["validation.ts"] = {
+    kind: "file",
+    content: validationBuilder.build(),
   };
   return directory;
 }
@@ -109,6 +119,28 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
     }> {`,
   );
   clientBuilder.indented(() => {
+    if (endpoint.headers) {
+      clientBuilder.append(
+        `if (!validation.validate_${endpoint.headers}(headers)) {`,
+      );
+      clientBuilder.indented(() => {
+        clientBuilder.append(
+          "throw new Error(`Invalid headers: ${JSON.stringify(headers, null, 2)}`);",
+        );
+      });
+      clientBuilder.append("}\n");
+    }
+    if (endpoint.input !== "void") {
+      clientBuilder.append(
+        `if (!validation.validate_${endpoint.input}(request)) {`,
+      );
+      clientBuilder.indented(() => {
+        clientBuilder.append(
+          "throw new Error(`Invalid request: ${JSON.stringify(request, null, 2)}`);",
+        );
+      });
+      clientBuilder.append("}\n");
+    }
     clientBuilder.append(`const url = \`\${URL}`);
     for (const subpath of endpoint.route) {
       if (subpath.dynamic) {
@@ -134,6 +166,15 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
     });
     clientBuilder.append("});\n");
     if (endpoint.output !== "void") {
+      clientBuilder.append(
+        `if (!validation.validate_${endpoint.output}(response)) {`,
+      );
+      clientBuilder.indented(() => {
+        clientBuilder.append(
+          "throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);",
+        );
+      });
+      clientBuilder.append("}\n");
       clientBuilder.append("return response.data;\n");
     }
   });
@@ -178,9 +219,8 @@ function appendServerEndpoint(
             headersType.items,
           )) {
             if (fieldType === "string") {
-              // TODO: Fail if the header is not set or empty.
               serverBuilder.append(
-                `${fieldName}: req.header("${fieldName}") || "",\n`,
+                `${fieldName}: req.header("${fieldName}")!,\n`,
               );
             } else if (
               typeof fieldType === "object" &&
@@ -196,6 +236,15 @@ function appendServerEndpoint(
           }
         });
         serverBuilder.append(`};\n`);
+        serverBuilder.append(
+          `if (!validation.validate_${endpoint.headers}(headers)) {`,
+        );
+        serverBuilder.indented(() => {
+          serverBuilder.append(
+            "throw new Error(`Invalid headers: ${JSON.stringify(headers, null, 2)}`);",
+          );
+        });
+        serverBuilder.append("}\n");
       }
       for (const subpath of endpoint.route) {
         if (subpath.dynamic) {
@@ -205,17 +254,36 @@ function appendServerEndpoint(
           args.push(subpath.name);
         }
       }
-      // TODO: Double check input structure.
       if (endpoint.input !== "void") {
         args.push("request");
         serverBuilder.append(
           `const request: api.${endpoint.input} = req.body;\n`,
         );
+        serverBuilder.append(
+          `if (!validation.validate_${endpoint.input}(request)) {`,
+        );
+        serverBuilder.indented(() => {
+          serverBuilder.append(
+            "throw new Error(`Invalid request: ${JSON.stringify(request, null, 2)}`);",
+          );
+        });
+        serverBuilder.append("}\n");
       }
       if (endpoint.output !== "void") {
         serverBuilder.append(`const response: api.${endpoint.output} = `);
       }
       serverBuilder.append(`await ${endpoint.name}(${args.join(", ")});\n`);
+      if (endpoint.output !== "void") {
+        serverBuilder.append(
+          `if (!validation.validate_${endpoint.output}(response)) {`,
+        );
+        serverBuilder.indented(() => {
+          serverBuilder.append(
+            "throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);",
+          );
+        });
+        serverBuilder.append("}\n");
+      }
       if (endpoint.output !== "void") {
         serverBuilder.append(`res.json(response);\n`);
       } else {
@@ -271,11 +339,16 @@ function generateEndpointImplementation(
   return codeBuilder.build();
 }
 
-function appendType(apiBuilder: TextBuilder, type: Type, exported?: string) {
+function appendType(
+  apiBuilder: TextBuilder,
+  type: Type,
+  name: string,
+  exported = false,
+) {
   if (typeof type === "string") {
     // TypeName.
     if (exported) {
-      apiBuilder.append(`export type ${exported} = `);
+      apiBuilder.append(`export type ${name} = `);
     }
     if (PRIMITIVE_TYPES.has(type)) {
       apiBuilder.append(primitiveTypeToTypeScript(type as PrimitiveType));
@@ -287,41 +360,41 @@ function appendType(apiBuilder: TextBuilder, type: Type, exported?: string) {
     }
   } else if (type.kind === "array") {
     if (exported) {
-      apiBuilder.append(`export type ${exported} = `);
+      apiBuilder.append(`export type ${name} = `);
     }
-    appendType(apiBuilder, type.items);
+    appendType(apiBuilder, type.items, `${name}_item`);
     apiBuilder.append("[]");
     if (exported) {
       apiBuilder.append(";\n");
     }
   } else if (type.kind === "union") {
     if (exported) {
-      apiBuilder.append(`export type ${exported} = `);
+      apiBuilder.append(`export type ${name} = `);
     }
-    let first = true;
+    let i = 0;
     for (const possibleType of type.items) {
-      if (!first) {
+      if (i > 0) {
         apiBuilder.append(" | ");
       }
-      appendType(apiBuilder, possibleType);
-      first = false;
+      appendType(apiBuilder, possibleType, `${name}_${i}`);
+      i++;
     }
     if (exported) {
       apiBuilder.append(";\n");
     }
   } else if (type.kind === "struct") {
     if (exported) {
-      apiBuilder.append(`export interface ${exported} `);
+      apiBuilder.append(`export interface ${name} `);
     }
     apiBuilder.append("{");
     apiBuilder.indented(() => {
       for (const [fieldName, fieldType] of Object.entries(type.items)) {
         if (typeof fieldType !== "string" && fieldType.kind === "optional") {
           apiBuilder.append(fieldName, "?: ");
-          appendType(apiBuilder, fieldType.type);
+          appendType(apiBuilder, fieldType.type, `${name}_${fieldName}`);
         } else {
           apiBuilder.append(fieldName, ": ");
-          appendType(apiBuilder, fieldType);
+          appendType(apiBuilder, fieldType, `${name}_${fieldName}`);
         }
         apiBuilder.append(";\n");
       }
@@ -332,7 +405,7 @@ function appendType(apiBuilder: TextBuilder, type: Type, exported?: string) {
     }
   } else if (type.kind === "symbol") {
     if (exported) {
-      apiBuilder.append(`export type ${exported} = `);
+      apiBuilder.append(`export type ${name} = `);
     }
     apiBuilder.append(`'${type.value}'`);
     if (exported) {
@@ -341,6 +414,122 @@ function appendType(apiBuilder: TextBuilder, type: Type, exported?: string) {
   } else {
     throw new Error();
   }
+}
+
+function appendValidateMethods(
+  validationBuilder: TextBuilder,
+  type: Type,
+  name: string,
+) {
+  if (typeof type === "string") {
+    // TypeName.
+    if (PRIMITIVE_TYPES.has(type)) {
+      appendValidateMethod(validationBuilder, name, () => {
+        if (type === "bool") {
+          validationBuilder.append("return typeof value === 'boolean';");
+        } else if (type === "int" || type === "long") {
+          validationBuilder.append(
+            "return typeof value === 'number' && Number.isInteger(value);",
+          );
+        } else if (type === "float" || type === "double") {
+          validationBuilder.append("return typeof value === 'number';");
+        } else if (type === "string") {
+          validationBuilder.append("return typeof value === 'string';");
+        } else if (type === "null") {
+          validationBuilder.append("return value === null;");
+        } else {
+          throw new Error(`Unknown primary type: ${type}.`);
+        }
+      });
+    } else {
+      appendValidateMethod(validationBuilder, name, () => {
+        validationBuilder.append(`return validate_${type}(value);`);
+      });
+    }
+  } else if (type.kind === "array") {
+    appendValidateMethod(validationBuilder, name, () => {
+      validationBuilder.append("if (!(value instanceof Array)) {");
+      validationBuilder.indented(() =>
+        validationBuilder.append("return false;"),
+      );
+      validationBuilder.append("}\n");
+      validationBuilder.append("for (let item of value) {");
+      validationBuilder.indented(() => {
+        validationBuilder.append(`if (!validate_${name}_item(item)) {`);
+        validationBuilder.indented(() =>
+          validationBuilder.append("return false;"),
+        );
+        validationBuilder.append("}\n");
+      });
+      validationBuilder.append("}\n");
+      validationBuilder.append("return true;\n");
+    });
+    appendValidateMethods(validationBuilder, type.items, `${name}_item`);
+  } else if (type.kind === "union") {
+    appendValidateMethod(validationBuilder, name, () => {
+      for (let i = 0; i < type.items.length; i++) {
+        validationBuilder.append(`if (validate_${name}_${i}(value)) {`);
+        validationBuilder.indented(() =>
+          validationBuilder.append("return true;"),
+        );
+        validationBuilder.append("}\n");
+      }
+      validationBuilder.append("return false;");
+    });
+    for (let i = 0; i < type.items.length; i++) {
+      appendValidateMethods(validationBuilder, type.items[i], `${name}_${i}`);
+    }
+  } else if (type.kind === "struct") {
+    appendValidateMethod(validationBuilder, name, () => {
+      validationBuilder.append("if (!(value instanceof Object)) {");
+      validationBuilder.indented(() =>
+        validationBuilder.append("return false;"),
+      );
+      validationBuilder.append("}\n");
+      for (const fieldName of Object.keys(type.items)) {
+        validationBuilder.append(
+          `if (!validate_${name}_${fieldName}(value.${fieldName})) {`,
+        );
+        validationBuilder.indented(() =>
+          validationBuilder.append("return false;"),
+        );
+        validationBuilder.append("}\n");
+      }
+      validationBuilder.append("return true;\n");
+    });
+    for (const [fieldName, fieldType] of Object.entries(type.items)) {
+      appendValidateMethods(
+        validationBuilder,
+        fieldType,
+        `${name}_${fieldName}`,
+      );
+    }
+  } else if (type.kind === "symbol") {
+    appendValidateMethod(validationBuilder, name, () => {
+      validationBuilder.append(`return value === '${type.value}';`);
+    });
+  } else if (type.kind === "optional") {
+    appendValidateMethod(validationBuilder, name, () => {
+      validationBuilder.append(
+        `return value === undefined || validate_${name}_present(value);`,
+      );
+    });
+    appendValidateMethods(validationBuilder, type.type, `${name}_present`);
+  } else {
+    throw new Error();
+  }
+}
+
+function appendValidateMethod(
+  validationBuilder: TextBuilder,
+  name: string,
+  body: () => void,
+) {
+  validationBuilder.append(
+    `export function validate_${name}(value: any): boolean {`,
+  );
+  validationBuilder.indented(body);
+  validationBuilder.append("}\n\n");
 }
 
 function primitiveTypeToTypeScript(typeName: PrimitiveType) {
