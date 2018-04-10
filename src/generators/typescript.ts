@@ -167,11 +167,11 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
     clientBuilder.append("});\n");
     if (endpoint.output !== "void") {
       clientBuilder.append(
-        `if (!validation.validate_${endpoint.output}(response)) {`,
+        `if (!validation.validate_${endpoint.output}(response.data)) {`,
       );
       clientBuilder.indented(() => {
         clientBuilder.append(
-          "throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);",
+          "throw new Error(`Invalid response: ${JSON.stringify(response.data, null, 2)}`);",
         );
       });
       clientBuilder.append("}\n");

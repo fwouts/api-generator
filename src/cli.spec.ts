@@ -115,8 +115,8 @@ export async function endpoint(): Promise<api.a> {
     url,
     method: "POST",
   });
-  if (!validation.validate_a(response)) {
-    throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+  if (!validation.validate_a(response.data)) {
+    throw new Error(\`Invalid response: \${JSON.stringify(response.data, null, 2)}\`);
   }
   return response.data;
 }

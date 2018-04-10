@@ -14,8 +14,8 @@ export async function createUser(request: api.CreateUserRequest): Promise<api.Cr
     method: "POST",
     data: request,
   });
-  if (!validation.validate_CreateUserResponse(response)) {
-    throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);
+  if (!validation.validate_CreateUserResponse(response.data)) {
+    throw new Error(`Invalid response: ${JSON.stringify(response.data, null, 2)}`);
   }
   return response.data;
 }
@@ -30,8 +30,8 @@ export async function listUsers(headers: api.AuthRequired): Promise<api.ListUser
     method: "GET",
     headers,
   });
-  if (!validation.validate_ListUsersResponse(response)) {
-    throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);
+  if (!validation.validate_ListUsersResponse(response.data)) {
+    throw new Error(`Invalid response: ${JSON.stringify(response.data, null, 2)}`);
   }
   return response.data;
 }
@@ -46,8 +46,8 @@ export async function getUser(headers: api.AuthRequired, id: string): Promise<ap
     method: "GET",
     headers,
   });
-  if (!validation.validate_User(response)) {
-    throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);
+  if (!validation.validate_User(response.data)) {
+    throw new Error(`Invalid response: ${JSON.stringify(response.data, null, 2)}`);
   }
   return response.data;
 }
