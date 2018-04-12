@@ -322,16 +322,21 @@ export async function createUser(request: api.CreateUserRequest): Promise<api.Cr
       if (!validation.validate_CreateUserResponseSuccess(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
-      break;
+      return {
+        kind: "success",
+        data,
+      };
     case 400:
       if (!validation.validate_string(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
-      break;
+      return {
+        kind: "failure",
+        data,
+      };
     default:
       throw new Error(\`Unexpected status: \${statusCode} \${statusText}\`);
   }
-  return data;
 }
 
 export async function listUsers(headers: api.AuthOptional): Promise<api.ListUsers_Response> {
@@ -368,16 +373,21 @@ export async function listUsers(headers: api.AuthOptional): Promise<api.ListUser
       if (!validation.validate_ListUsersResponse(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
-      break;
+      return {
+        kind: "success",
+        data,
+      };
     case 403:
       if (!validation.validate_string(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
-      break;
+      return {
+        kind: "failure",
+        data,
+      };
     default:
       throw new Error(\`Unexpected status: \${statusCode} \${statusText}\`);
   }
-  return data;
 }
 
 export async function getUser(headers: api.AuthRequired, id: string): Promise<api.GetUser_Response> {
@@ -414,16 +424,21 @@ export async function getUser(headers: api.AuthRequired, id: string): Promise<ap
       if (!validation.validate_User(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
-      break;
+      return {
+        kind: "success",
+        data,
+      };
     case 403:
       if (!validation.validate_string(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
-      break;
+      return {
+        kind: "failure",
+        data,
+      };
     default:
       throw new Error(\`Unexpected status: \${statusCode} \${statusText}\`);
   }
-  return data;
 }
 
 export async function deleteUser(headers: api.AuthRequired, id: string): Promise<api.DeleteUser_Response> {
@@ -457,17 +472,20 @@ export async function deleteUser(headers: api.AuthRequired, id: string): Promise
   }
   switch (statusCode) {
     case 200:
-      data = undefined;
-      break;
+      return {
+        kind: "success",
+      };
     case 403:
       if (!validation.validate_string(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
-      break;
+      return {
+        kind: "failure",
+        data,
+      };
     default:
       throw new Error(\`Unexpected status: \${statusCode} \${statusText}\`);
   }
-  return data;
 }
 `,
       },

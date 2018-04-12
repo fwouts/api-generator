@@ -204,7 +204,11 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
         clientBuilder.append(`case ${endpointOutput.statusCode}:`);
         clientBuilder.indented(() => {
           if (endpointOutput.type === "void") {
-            clientBuilder.append("data = undefined;\n");
+            clientBuilder.append("return {");
+            clientBuilder.indented(() => {
+              clientBuilder.append(`kind: "${endpointOutput.name}",`);
+            });
+            clientBuilder.append("};");
           } else {
             clientBuilder.append(
               `if (!validation.validate_${endpointOutput.type}(data)) {`,
@@ -215,8 +219,13 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
               );
             });
             clientBuilder.append("}\n");
+            clientBuilder.append("return {");
+            clientBuilder.indented(() => {
+              clientBuilder.append(`kind: "${endpointOutput.name}",\n`);
+              clientBuilder.append(`data,\n`);
+            });
+            clientBuilder.append("};");
           }
-          clientBuilder.append("break;");
         });
       }
       clientBuilder.append("default:");
@@ -227,7 +236,6 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
       });
     });
     clientBuilder.append("}\n");
-    clientBuilder.append("return data;");
   });
   clientBuilder.append("}");
 }
