@@ -15,7 +15,7 @@ type b =
 endpoint a : GET /path
   `),
   ).toThrow(
-    "Syntax error (3:2): extraneous input '<EOF>' expecting {'endpoint', 'type', NAME, LINEBREAK}.",
+    "Syntax error (2:22): missing {'endpoint', 'type', NAME} at '\\n'.",
   );
 });
 
@@ -24,7 +24,9 @@ test("parser rejects invalid types", () => {
     parse(`
 type a = 123
   `),
-  ).toThrow("Syntax error (2:9): token recognition error at: '1'.");
+  ).toThrow(
+    "Syntax error (2:9): extraneous input '123' expecting {'endpoint', 'type', '{', '@', NAME, LINEBREAK}.",
+  );
 });
 
 test("parser rejects extraneous syntax", () => {
@@ -184,13 +186,18 @@ type a = {
 test("parser works with complex case", () => {
   expect(
     parse(`
-endpoint createUser: POST /users b -> c;
+endpoint createUser: POST /users b
+-> success 200 c;
 
 @headers(AuthRequired)
-endpoint deleteUser: DELETE /users/:id void -> void;
+endpoint deleteUser: DELETE /users/:id void
+-> success 200 void
+-> failure 403 void;
 
 @headers(AuthRequired)
-endpoint endpoint: POST /my/endpoint/type type -> endpoint;
+endpoint endpoint: POST /my/endpoint/type type
+-> success 200 endpoint
+-> failure 403 void;
 
 type AuthRequired = {
   Authorization: string
@@ -226,7 +233,13 @@ type endpoint = b;
           },
         ],
         input: "b",
-        output: "c",
+        outputs: [
+          {
+            name: "success",
+            statusCode: 200,
+            type: "c",
+          },
+        ],
       },
       {
         name: "deleteUser",
@@ -243,7 +256,18 @@ type endpoint = b;
         ],
         headers: "AuthRequired",
         input: "void",
-        output: "void",
+        outputs: [
+          {
+            name: "success",
+            statusCode: 200,
+            type: "void",
+          },
+          {
+            name: "failure",
+            statusCode: 403,
+            type: "void",
+          },
+        ],
       },
       {
         name: "endpoint",
@@ -264,7 +288,18 @@ type endpoint = b;
         ],
         headers: "AuthRequired",
         input: "type",
-        output: "endpoint",
+        outputs: [
+          {
+            name: "success",
+            statusCode: 200,
+            type: "endpoint",
+          },
+          {
+            name: "failure",
+            statusCode: 403,
+            type: "void",
+          },
+        ],
       },
     ],
     typeDefs: [
@@ -338,16 +373,16 @@ type endpoint = b;
 test("parser works with complex case without semicolon", () => {
   expect(
     parse(`
-endpoint createUser:
-POST
-/users
-b -> c
+endpoint createUser: POST /users b
+-> success 200 c
 
+endpoint deleteUser: DELETE /users/:id void
+-> success 200 void
+-> failure 403 void
 
-endpoint deleteUser:
-  DELETE /users/:id void -> void
-
-endpoint endpoint: POST /my/endpoint/type type -> endpoint
+endpoint endpoint: POST /my/endpoint/type type
+-> success 200 endpoint
+-> failure 403 void
 
 type a = b | string | int
 
@@ -383,7 +418,13 @@ type endpoint = b
           },
         ],
         input: "b",
-        output: "c",
+        outputs: [
+          {
+            name: "success",
+            statusCode: 200,
+            type: "c",
+          },
+        ],
       },
       {
         name: "deleteUser",
@@ -399,7 +440,18 @@ type endpoint = b
           },
         ],
         input: "void",
-        output: "void",
+        outputs: [
+          {
+            name: "success",
+            statusCode: 200,
+            type: "void",
+          },
+          {
+            name: "failure",
+            statusCode: 403,
+            type: "void",
+          },
+        ],
       },
       {
         name: "endpoint",
@@ -419,7 +471,18 @@ type endpoint = b
           },
         ],
         input: "type",
-        output: "endpoint",
+        outputs: [
+          {
+            name: "success",
+            statusCode: 200,
+            type: "endpoint",
+          },
+          {
+            name: "failure",
+            statusCode: 403,
+            type: "void",
+          },
+        ],
       },
     ],
     typeDefs: [

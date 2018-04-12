@@ -1,4 +1,11 @@
-import { Api, Endpoint, PRIMITIVE_TYPES, Type } from "./defs";
+import {
+  Api,
+  Endpoint,
+  PRIMITIVE_TYPES,
+  StructType,
+  Type,
+  UnionType,
+} from "./defs";
 
 export interface EndpointDefinitions {
   [name: string]: Endpoint;
@@ -62,13 +69,58 @@ export function resolve(api: Api): ResolveResult {
       recordedErrors.push(`No such type ${endpoint.input}.`);
       error = true;
     }
-    if (
-      endpoint.output !== "void" &&
-      !PRIMITIVE_TYPES.has(endpoint.output) &&
-      !(endpoint.output in definedTypes)
-    ) {
-      recordedErrors.push(`No such type ${endpoint.output}.`);
-      error = true;
+    const endpointNames = new Set<string>();
+    const endpointStatusCodes = new Set<number>();
+    for (const endpointOutput of endpoint.outputs) {
+      if (
+        endpointOutput.type !== "void" &&
+        !PRIMITIVE_TYPES.has(endpointOutput.type) &&
+        !(endpointOutput.type in definedTypes)
+      ) {
+        recordedErrors.push(`No such type ${endpointOutput.type}.`);
+        error = true;
+      }
+      if (endpointNames.has(endpointOutput.name)) {
+        recordedErrors.push(
+          `Multiple outputs with the name ${endpointOutput.name}.`,
+        );
+        error = true;
+      }
+      endpointNames.add(endpointOutput.name);
+      if (endpointStatusCodes.has(endpointOutput.statusCode)) {
+        recordedErrors.push(
+          `Multiple outputs for the status code ${endpointOutput.statusCode}.`,
+        );
+        error = true;
+      }
+      endpointStatusCodes.add(endpointOutput.statusCode);
+    }
+    if (!error) {
+      const outputType: UnionType = {
+        kind: "union",
+        items: endpoint.outputs.map((output): StructType => {
+          return {
+            kind: "struct",
+            items: {
+              kind: {
+                kind: "symbol",
+                value: output.name,
+              },
+              ...(output.type !== "void" && {
+                data: output.type,
+              }),
+            },
+          };
+        }),
+      };
+      const outputTypeName = endpointResponseName(endpoint);
+      if (outputTypeName in definedTypes) {
+        recordedErrors.push(
+          `Type ${outputTypeName} must be renamed to prevent a conflict.`,
+        );
+        error = true;
+      }
+      definedTypes[outputTypeName] = outputType;
     }
     if (!error) {
       definedEndpoints[endpoint.name] = endpoint;
@@ -110,4 +162,10 @@ export function resolve(api: Api): ResolveResult {
       throw new Error();
     }
   }
+}
+
+export function endpointResponseName(endpoint: Endpoint) {
+  // Endpoint name = createUser
+  // Type name = CreateUser_Response
+  return endpoint.name[0].toUpperCase() + endpoint.name.substr(1) + "_Response";
 }

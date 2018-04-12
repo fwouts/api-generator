@@ -11,7 +11,9 @@ import { generateTypeScript } from "./typescript";
 
 const API = resolve(
   parse(`
-endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse
+endpoint createUser: POST /users CreateUserRequest
+-> success 200 CreateUserResponseSuccess
+-> failure 400 string
 
 type CreateUserRequest = {
   name: string
@@ -21,11 +23,7 @@ type CreateUserRequest = {
 
 type Role = @user | @admin;
 
-type CreateUserResponse = {
-  status: @error
-  message: string
-} | {
-  status: @success
+type CreateUserResponseSuccess = {
   id: string
   info: {
     name: string
@@ -33,19 +31,25 @@ type CreateUserResponse = {
 }
 
 @headers(AuthOptional)
-endpoint listUsers: GET /users void -> ListUsersResponse
+endpoint listUsers: GET /users void
+-> success 200 ListUsersResponse
+-> failure 403 string
 
 type ListUsersResponse = User[]
 
 @headers(AuthRequired)
-endpoint getUser: GET /users/:id void -> User
+endpoint getUser: GET /users/:id void
+-> success 200 User
+-> failure 403 string
 
 type User = {
   name: string
 }
 
 @headers(AuthRequired)
-endpoint deleteUser: DELETE /users/:id void -> void
+endpoint deleteUser: DELETE /users/:id void
+-> success 200 void
+-> failure 403 string
 
 type AuthOptional = {
   Authorization?: string
@@ -76,16 +80,12 @@ test("generator only types", () => {
 
 export type Role = 'user' | 'admin';
 
-export type CreateUserResponse = {
-  status: 'error';
-  message: string;
-} | {
-  status: 'success';
+export interface CreateUserResponseSuccess {
   id: string;
   info: {
     name: string;
   };
-};
+}
 
 export type ListUsersResponse = User[];
 
@@ -100,6 +100,37 @@ export interface AuthOptional {
 export interface AuthRequired {
   Authorization: string;
 }
+
+export type CreateUser_Response = {
+  kind: 'success';
+  data: CreateUserResponseSuccess;
+} | {
+  kind: 'failure';
+  data: string;
+};
+
+export type ListUsers_Response = {
+  kind: 'success';
+  data: ListUsersResponse;
+} | {
+  kind: 'failure';
+  data: string;
+};
+
+export type GetUser_Response = {
+  kind: 'success';
+  data: User;
+} | {
+  kind: 'failure';
+  data: string;
+};
+
+export type DeleteUser_Response = {
+  kind: 'success';
+} | {
+  kind: 'failure';
+  data: string;
+};
 `,
       },
     },
@@ -128,8 +159,8 @@ test("generator creates enforceable types", () => {
       name: "test",
     };
 
-    let responseMissingMessage: CreateUserResponse = {
-      status: "error",
+    let responseMissingMessage: CreateUser_Response = {
+      kind: "failure",
     };
   `;
   const { errors } = compile({
@@ -137,7 +168,7 @@ test("generator creates enforceable types", () => {
   });
   expect(errors).toEqual([
     "source.ts: Type '{ name: string; }' is not assignable to type 'CreateUserRequest'.",
-    "source.ts: Type '{ status: \"error\"; }' is not assignable to type 'CreateUserResponse'.",
+    "source.ts: Type '{ kind: \"failure\"; }' is not assignable to type 'CreateUser_Response'.",
   ]);
 });
 
@@ -181,27 +212,31 @@ let invalidRequest2 = {
 };
 
 let validResponse1 = {
-  status: "error",
-  message: "blah",
+  kind: "failure",
+  data: "blah",
 };
 
 let validResponse2 = {
-  status: "success",
-  id: "abc",
-  info: {
-    name: "Hector",
+  kind: "success",
+  data: {
+    id: "abc",
+    info: {
+      name: "Hector",
+    },
   },
 };
 
 let invalidResponse1 = {
-  status: "error",
+  kind: "failure",
 };
 
 let invalidResponse2 = {
-  status: "success",
-  id: "abc",
-  info: {
-    name: 123,
+  kind: "success",
+  data: {
+    id: "abc",
+    info: {
+      name: 123,
+    },
   },
 };
 
@@ -209,10 +244,10 @@ expect(validation.validate_CreateUserRequest(validRequest1)).toBe(true);
 expect(validation.validate_CreateUserRequest(validRequest2)).toBe(true);
 expect(validation.validate_CreateUserRequest(invalidRequest1)).toBe(false);
 expect(validation.validate_CreateUserRequest(invalidRequest2)).toBe(false);
-expect(validation.validate_CreateUserResponse(validResponse1)).toBe(true);
-expect(validation.validate_CreateUserResponse(validResponse2)).toBe(true);
-expect(validation.validate_CreateUserResponse(invalidResponse1)).toBe(false);
-expect(validation.validate_CreateUserResponse(invalidResponse2)).toBe(false);
+expect(validation.validate_CreateUser_Response(validResponse1)).toBe(true);
+expect(validation.validate_CreateUser_Response(validResponse2)).toBe(true);
+expect(validation.validate_CreateUser_Response(invalidResponse1)).toBe(false);
+expect(validation.validate_CreateUser_Response(invalidResponse2)).toBe(false);
 `,
   });
   expect(errors).toEqual([]);
@@ -247,70 +282,194 @@ test("generator with client", () => {
     children: {
       "client.ts": {
         kind: "file",
-        content: `import axios from "axios";
-import * as api from "./api";
-import * as validation from "./validation";
+        content: `import axios, { AxiosError } from \"axios\";
+import * as api from \"./api\";
+import * as validation from \"./validation\";
 
-const URL = "https://api.test.com";
+const URL = \"https://api.test.com\";
 
-export async function createUser(request: api.CreateUserRequest): Promise<api.CreateUserResponse> {
+export async function createUser(request: api.CreateUserRequest): Promise<api.CreateUser_Response> {
   if (!validation.validate_CreateUserRequest(request)) {
     throw new Error(\`Invalid request: \${JSON.stringify(request, null, 2)}\`);
   }
   const url = \`\${URL}/users\`;
-  const response = await axios({
-    url,
-    method: "POST",
-    data: request,
-  });
-  if (!validation.validate_CreateUserResponse(response.data)) {
-    throw new Error(\`Invalid response: \${JSON.stringify(response.data, null, 2)}\`);
+  let data: any;
+  let statusCode: number;
+  let statusText: string;
+  try {
+    const response = await axios({
+      url,
+      method: \"POST\",
+      responseType: \"json\",
+      data: request,
+    });
+    data = response.data;
+    statusCode = response.status;
+    statusText = response.statusText;
+  } catch (e) {
+    const axiosError = e as AxiosError;
+    if (axiosError.response) {
+      data = axiosError.response.data;
+      statusCode = axiosError.response.status;
+      statusText = axiosError.response.statusText;
+    } else {
+      statusCode = 503;
+      statusText = axiosError.code || axiosError.message;
+    }
   }
-  return response.data;
+  switch (statusCode) {
+    case 200:
+      if (!validation.validate_CreateUserResponseSuccess(data)) {
+        throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
+      }
+      break;
+    case 400:
+      if (!validation.validate_string(data)) {
+        throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
+      }
+      break;
+    default:
+      throw new Error(\`Unexpected status: \${statusCode} \${statusText}\`);
+  }
+  return data;
 }
 
-export async function listUsers(headers: api.AuthOptional): Promise<api.ListUsersResponse> {
+export async function listUsers(headers: api.AuthOptional): Promise<api.ListUsers_Response> {
   if (!validation.validate_AuthOptional(headers)) {
     throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
   }
   const url = \`\${URL}/users\`;
-  const response = await axios({
-    url,
-    method: "GET",
-    headers,
-  });
-  if (!validation.validate_ListUsersResponse(response.data)) {
-    throw new Error(\`Invalid response: \${JSON.stringify(response.data, null, 2)}\`);
+  let data: any;
+  let statusCode: number;
+  let statusText: string;
+  try {
+    const response = await axios({
+      url,
+      method: \"GET\",
+      responseType: \"json\",
+      headers,
+    });
+    data = response.data;
+    statusCode = response.status;
+    statusText = response.statusText;
+  } catch (e) {
+    const axiosError = e as AxiosError;
+    if (axiosError.response) {
+      data = axiosError.response.data;
+      statusCode = axiosError.response.status;
+      statusText = axiosError.response.statusText;
+    } else {
+      statusCode = 503;
+      statusText = axiosError.code || axiosError.message;
+    }
   }
-  return response.data;
+  switch (statusCode) {
+    case 200:
+      if (!validation.validate_ListUsersResponse(data)) {
+        throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
+      }
+      break;
+    case 403:
+      if (!validation.validate_string(data)) {
+        throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
+      }
+      break;
+    default:
+      throw new Error(\`Unexpected status: \${statusCode} \${statusText}\`);
+  }
+  return data;
 }
 
-export async function getUser(headers: api.AuthRequired, id: string): Promise<api.User> {
+export async function getUser(headers: api.AuthRequired, id: string): Promise<api.GetUser_Response> {
   if (!validation.validate_AuthRequired(headers)) {
     throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
   }
   const url = \`\${URL}/users/\${id}\`;
-  const response = await axios({
-    url,
-    method: "GET",
-    headers,
-  });
-  if (!validation.validate_User(response.data)) {
-    throw new Error(\`Invalid response: \${JSON.stringify(response.data, null, 2)}\`);
+  let data: any;
+  let statusCode: number;
+  let statusText: string;
+  try {
+    const response = await axios({
+      url,
+      method: \"GET\",
+      responseType: \"json\",
+      headers,
+    });
+    data = response.data;
+    statusCode = response.status;
+    statusText = response.statusText;
+  } catch (e) {
+    const axiosError = e as AxiosError;
+    if (axiosError.response) {
+      data = axiosError.response.data;
+      statusCode = axiosError.response.status;
+      statusText = axiosError.response.statusText;
+    } else {
+      statusCode = 503;
+      statusText = axiosError.code || axiosError.message;
+    }
   }
-  return response.data;
+  switch (statusCode) {
+    case 200:
+      if (!validation.validate_User(data)) {
+        throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
+      }
+      break;
+    case 403:
+      if (!validation.validate_string(data)) {
+        throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
+      }
+      break;
+    default:
+      throw new Error(\`Unexpected status: \${statusCode} \${statusText}\`);
+  }
+  return data;
 }
 
-export async function deleteUser(headers: api.AuthRequired, id: string): Promise<void> {
+export async function deleteUser(headers: api.AuthRequired, id: string): Promise<api.DeleteUser_Response> {
   if (!validation.validate_AuthRequired(headers)) {
     throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
   }
   const url = \`\${URL}/users/\${id}\`;
-  await axios({
-    url,
-    method: "DELETE",
-    headers,
-  });
+  let data: any;
+  let statusCode: number;
+  let statusText: string;
+  try {
+    const response = await axios({
+      url,
+      method: \"DELETE\",
+      responseType: \"json\",
+      headers,
+    });
+    data = response.data;
+    statusCode = response.status;
+    statusText = response.statusText;
+  } catch (e) {
+    const axiosError = e as AxiosError;
+    if (axiosError.response) {
+      data = axiosError.response.data;
+      statusCode = axiosError.response.status;
+      statusText = axiosError.response.statusText;
+    } else {
+      statusCode = 503;
+      statusText = axiosError.code || axiosError.message;
+    }
+  }
+  switch (statusCode) {
+    case 200:
+      if (!validation.validate_void(data)) {
+        throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
+      }
+      break;
+    case 403:
+      if (!validation.validate_string(data)) {
+        throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
+      }
+      break;
+    default:
+      throw new Error(\`Unexpected status: \${statusCode} \${statusText}\`);
+  }
+  return data;
 }
 `,
       },
@@ -349,11 +508,25 @@ app.post("/users", async (req, res, next) => {
     if (!validation.validate_CreateUserRequest(request)) {
       throw new Error(\`Invalid request: \${JSON.stringify(request, null, 2)}\`);
     }
-    const response: api.CreateUserResponse = await createUser(request);
-    if (!validation.validate_CreateUserResponse(response)) {
-      throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+    const response: api.CreateUser_Response = await createUser(request);
+    let statusCode: number;
+    switch (response.kind) {
+      case \"success\":
+        if (!validation.validate_CreateUserResponseSuccess(response.data)) {
+          throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+        }
+        statusCode = 200;
+        break;
+      case \"failure\":
+        if (!validation.validate_string(response.data)) {
+          throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+        }
+        statusCode = 400;
+        break;
+      default:
+        throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
     }
-    res.json(response);
+    res.status(statusCode).json(response);
   } catch (err) {
     next(err);
   }
@@ -367,11 +540,25 @@ app.get("/users", async (req, res, next) => {
     if (!validation.validate_AuthOptional(headers)) {
       throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
     }
-    const response: api.ListUsersResponse = await listUsers(headers);
-    if (!validation.validate_ListUsersResponse(response)) {
-      throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+    const response: api.ListUsers_Response = await listUsers(headers);
+    let statusCode: number;
+    switch (response.kind) {
+      case \"success\":
+        if (!validation.validate_ListUsersResponse(response.data)) {
+          throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+        }
+        statusCode = 200;
+        break;
+      case \"failure\":
+        if (!validation.validate_string(response.data)) {
+          throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+        }
+        statusCode = 403;
+        break;
+      default:
+        throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
     }
-    res.json(response);
+    res.status(statusCode).json(response);
   } catch (err) {
     next(err);
   }
@@ -386,11 +573,25 @@ app.get("/users/:id", async (req, res, next) => {
       throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
     }
     const id = req.params["id"];
-    const response: api.User = await getUser(headers, id);
-    if (!validation.validate_User(response)) {
-      throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+    const response: api.GetUser_Response = await getUser(headers, id);
+    let statusCode: number;
+    switch (response.kind) {
+      case \"success\":
+        if (!validation.validate_User(response.data)) {
+          throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+        }
+        statusCode = 200;
+        break;
+      case \"failure\":
+        if (!validation.validate_string(response.data)) {
+          throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+        }
+        statusCode = 403;
+        break;
+      default:
+        throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
     }
-    res.json(response);
+    res.status(statusCode).json(response);
   } catch (err) {
     next(err);
   }
@@ -405,8 +606,25 @@ app.delete("/users/:id", async (req, res, next) => {
       throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
     }
     const id = req.params["id"];
-    await deleteUser(headers, id);
-    res.end();
+    const response: api.DeleteUser_Response = await deleteUser(headers, id);
+    let statusCode: number;
+    switch (response.kind) {
+      case \"success\":
+        if (!validation.validate_void(response.data)) {
+          throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+        }
+        statusCode = 200;
+        break;
+      case \"failure\":
+        if (!validation.validate_string(response.data)) {
+          throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+        }
+        statusCode = 403;
+        break;
+      default:
+        throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
+    }
+    res.status(statusCode).json(response);
   } catch (err) {
     next(err);
   }
@@ -419,9 +637,9 @@ app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
       "endpoints": {
         children: {
           "createUser.ts": {
-            content: `import { CreateUserRequest, CreateUserResponse } from "../api";
+            content: `import { CreateUserRequest, CreateUser_Response } from "../api";
 
-export async function createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
+export async function createUser(request: CreateUserRequest): Promise<CreateUser_Response> {
   throw new Error("Unimplemented.");
 }
 `,
@@ -429,9 +647,9 @@ export async function createUser(request: CreateUserRequest): Promise<CreateUser
             kind: "file",
           },
           "deleteUser.ts": {
-            content: `import { AuthRequired } from "../api";
+            content: `import { AuthRequired, DeleteUser_Response } from "../api";
 
-export async function deleteUser(headers: AuthRequired, id: string): Promise<void> {
+export async function deleteUser(headers: AuthRequired, id: string): Promise<DeleteUser_Response> {
   throw new Error("Unimplemented.");
 }
 `,
@@ -439,9 +657,9 @@ export async function deleteUser(headers: AuthRequired, id: string): Promise<voi
             kind: "file",
           },
           "getUser.ts": {
-            content: `import { AuthRequired, User } from "../api";
+            content: `import { AuthRequired, GetUser_Response } from "../api";
 
-export async function getUser(headers: AuthRequired, id: string): Promise<User> {
+export async function getUser(headers: AuthRequired, id: string): Promise<GetUser_Response> {
   throw new Error("Unimplemented.");
 }
 `,
@@ -449,9 +667,9 @@ export async function getUser(headers: AuthRequired, id: string): Promise<User> 
             kind: "file",
           },
           "listUsers.ts": {
-            content: `import { AuthOptional, ListUsersResponse } from "../api";
+            content: `import { AuthOptional, ListUsers_Response } from "../api";
 
-export async function listUsers(headers: AuthOptional): Promise<ListUsersResponse> {
+export async function listUsers(headers: AuthOptional): Promise<ListUsers_Response> {
   throw new Error("Unimplemented.");
 }
 `,
@@ -476,6 +694,7 @@ function compile(sources: {
     strict: true,
     module: ts.ModuleKind.CommonJS,
     baseUrl: "./",
+    target: ts.ScriptTarget.ES2015,
   };
   const defaultCompilerHost = ts.createCompilerHost(compilerOptions);
   const tsProgram = ts.createProgram(Object.keys(sources), compilerOptions, {

@@ -9,9 +9,9 @@ Here is an example of a REST API that exposes two endpoints:
 ### example.api
 ```
 // Endpoint to login users.
-endpoint loginUser:
-  POST /users/login
-  LoginUserRequest -> LoginUserResponse
+endpoint loginUser: POST /users/login LoginUserRequest
+-> success 200 LoginUserResponse
+-> failure 403 string
 
 type LoginUserRequest = {
   email: string
@@ -28,9 +28,9 @@ type LoginUserResponse = {
 
 // Endpoint to create a post.
 @headers(AuthRequired)
-endpoint postMessage:
-  POST /messages
-  PostMessageRequest -> PostMessageResponse
+endpoint postMessage: POST /messages PostMessageRequest
+-> success 200 PostMessageResponse
+-> failure 400 string
 
 type PostMessageRequest = {
   text: string
@@ -103,12 +103,18 @@ type t = null
 
 ## Endpoints
 
-An endpoint is defined with `endpoint [NAME]: [PATH] [HTTP_METHOD] [INPUT_TYPE] -> [OUTPUT_TYPE]`.
+An endpoint is defined with:
+```
+endpoint [name]: /some/path/:param [method] [inputType]
+-> case1 [statusCode1] [outputType1]
+-> case2 [statusCode2] [outputType2]
+-> case3 [statusCode3] [outputType3]
+```
 
 The HTTP method must be one of `GET`, `POST`, `PUT` or `DELETE`.
 
 The input and/or the output type may be `void`, meaning that the endpoint does not take any input
 or does not produce any output.
 
-Endpoints can be annotated with `@headers([HEADERS_TYPE])` which will ensure that the appropriate
+Endpoints can be annotated with `@headers(headerType)` which will ensure that the appropriate
 headers are provided.

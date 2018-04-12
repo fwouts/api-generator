@@ -5,15 +5,19 @@ api
     ;
 
 endpoint
-    : headers? 'endpoint' LINEBREAK* endpointname LINEBREAK* ':' LINEBREAK* method LINEBREAK* route LINEBREAK* typename LINEBREAK* '->' LINEBREAK* typename separator
+    : headers? 'endpoint' endpointname ':' method route typename endpointoutput+ separator
     ;
 
 headers
-    : '@headers' '(' typename ')' LINEBREAK*
+    :  '@headers' '(' typename ')' LINEBREAK+
     ;
 
 endpointname
     : name
+    ;
+
+endpointoutput
+    : LINEBREAK+ '->' statusname statuscode typename
     ;
 
 method
@@ -55,6 +59,14 @@ structfield
     : fieldname (optional='?')? ':' type
     ;
 
+statusname
+    : name
+    ;
+
+statuscode
+    : NUMBER
+    ;
+
 fieldname
     : name
     ;
@@ -77,7 +89,11 @@ separator
     ;
 
 NAME
-    : [a-zA-Z][a-zA-Z0-9]*
+    : [a-zA-Z][a-zA-Z0-9_]*
+    ;
+
+NUMBER
+    : [0-9]+
     ;
 
 LINEBREAK

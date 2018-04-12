@@ -1,9 +1,5 @@
-import { CreateUserRequest, CreateUserResponse } from "../api";
+import { CreateUser_Response, CreateUserRequest } from "../api";
 
-export async function createUser(
-  request: CreateUserRequest,
-): Promise<CreateUserResponse> {
-  return {
-    id: "abc",
-  };
+export async function createUser(request: CreateUserRequest): Promise<CreateUser_Response> {
+  throw new Error("Unimplemented.");
 }

@@ -9,7 +9,13 @@ export interface Endpoint {
   route: RouteSubpath[];
   headers?: TypeName;
   input: TypeName;
-  output: TypeName;
+  outputs: EndpointOutput[];
+}
+
+export interface EndpointOutput {
+  name: string;
+  statusCode: number;
+  type: TypeName;
 }
 
 export type EndpointName = string;

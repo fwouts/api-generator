@@ -1,9 +1,5 @@
-import { AuthRequired, User } from "../api";
+import { AuthRequired, ListUsers_Response } from "../api";
 
-export async function listUsers(headers: AuthRequired): Promise<User[]> {
-  return [
-    {
-      name: "Frank",
-    },
-  ];
+export async function listUsers(headers: AuthRequired): Promise<ListUsers_Response> {
+  throw new Error("Unimplemented.");
 }

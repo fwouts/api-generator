@@ -3,6 +3,7 @@ import {
   Api,
   ArrayType,
   Endpoint,
+  EndpointOutput,
   Method,
   RouteSubpath,
   StructType,
@@ -16,6 +17,7 @@ import {
   ApiDefParser,
   ArrayContext,
   EndpointContext,
+  EndpointoutputContext,
   HeadersContext,
   MethodContext,
   RouteContext,
@@ -88,8 +90,8 @@ function read_endpoint(endpoint: EndpointContext): Endpoint {
     method: read_method(endpoint.method()),
     route: read_route(endpoint.route()),
     headers: read_headers(endpoint.headers()),
-    input: read_typename(endpoint.typename()[0]),
-    output: read_typename(endpoint.typename()[1]),
+    input: read_typename(endpoint.typename()),
+    outputs: endpoint.endpointoutput().map(read_endpointoutput),
   };
 }
 
@@ -114,6 +116,16 @@ function read_headers(headers?: HeadersContext) {
   } else {
     return undefined;
   }
+}
+
+function read_endpointoutput(
+  endpointoutput: EndpointoutputContext,
+): EndpointOutput {
+  return {
+    name: endpointoutput.statusname().text,
+    statusCode: parseInt(endpointoutput.statuscode().text, 10),
+    type: read_typename(endpointoutput.typename()),
+  };
 }
 
 function read_typedef(typedef: TypedefContext): TypeDef {

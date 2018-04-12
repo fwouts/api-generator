@@ -1,25 +1,31 @@
-endpoint createUser: POST /users CreateUserRequest -> CreateUserResponse;
+endpoint createUser: POST /users CreateUserRequest
+-> success 200 CreateUserResponse
+-> failure 400 string
 
 type CreateUserRequest = {
-  name: string;
-  password: string;
-};
+  name: string
+  password: string
+}
 
 type CreateUserResponse = {
-  id: string;
-};
+  id: string
+}
 
 @headers(AuthRequired)
-endpoint listUsers: GET /users void -> ListUsersResponse;
+endpoint listUsers: GET /users void
+-> success 200 ListUsersResponse
+-> failure 403 string
 
-type ListUsersResponse = User[];
+type ListUsersResponse = User[]
 
 @headers(AuthRequired)
-endpoint getUser: GET /users/:id void -> User;
+endpoint getUser: GET /users/:id void
+-> success 200 User
+-> failure 403 string
 
 type User = {
-  name: string;
-};
+  name: string
+}
 
 type AuthRequired = {
   Authorization: string

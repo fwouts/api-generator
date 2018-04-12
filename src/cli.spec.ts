@@ -50,21 +50,14 @@ type a = string;
       messages: [`API generated at ${outputDestination}.`],
     },
   ]);
-  expect(input(outputDestination)).toEqual({
+  expect(input(outputDestination)).toMatchObject({
     kind: "directory",
     children: {
       "api.ts": {
         kind: "file",
-        content: `export type a = string;
-`,
       },
       "validation.ts": {
         kind: "file",
-        content: `export function validate_a(value: any): boolean {
-  return typeof value === 'string';
-}
-
-`,
       },
     },
   });
@@ -72,7 +65,8 @@ type a = string;
 
 test("cli generates output (client)", () => {
   const apiSource = createApi(`
-endpoint endpoint: POST /endpoint void -> a
+endpoint endpoint: POST /endpoint void
+-> success 200 a
 type a = string;
 `);
   const outputDestination = prepareOutput();
@@ -85,42 +79,17 @@ type a = string;
       messages: [`API generated at ${outputDestination}.`],
     },
   ]);
-  expect(input(outputDestination)).toEqual({
+  expect(input(outputDestination)).toMatchObject({
     kind: "directory",
     children: {
       "api.ts": {
         kind: "file",
-        content: `export type a = string;
-`,
       },
       "validation.ts": {
         kind: "file",
-        content: `export function validate_a(value: any): boolean {
-  return typeof value === 'string';
-}
-
-`,
       },
       "client.ts": {
         kind: "file",
-        content: `import axios from "axios";
-import * as api from "./api";
-import * as validation from "./validation";
-
-const URL = "https://api.test.com";
-
-export async function endpoint(): Promise<api.a> {
-  const url = \`\${URL}/endpoint\`;
-  const response = await axios({
-    url,
-    method: "POST",
-  });
-  if (!validation.validate_a(response.data)) {
-    throw new Error(\`Invalid response: \${JSON.stringify(response.data, null, 2)}\`);
-  }
-  return response.data;
-}
-`,
       },
     },
   });
@@ -128,7 +97,8 @@ export async function endpoint(): Promise<api.a> {
 
 test("cli generates output (server)", () => {
   const apiSource = createApi(`
-endpoint endpoint: POST /endpoint void -> a
+endpoint endpoint: POST /endpoint void
+-> success 200 a
 type a = string;
 `);
   const outputDestination = prepareOutput();
@@ -141,60 +111,23 @@ type a = string;
       messages: [`API generated at ${outputDestination}.`],
     },
   ]);
-  expect(input(outputDestination)).toEqual({
+  expect(input(outputDestination)).toMatchObject({
     kind: "directory",
     children: {
       "api.ts": {
         kind: "file",
-        content: `export type a = string;
-`,
       },
       "validation.ts": {
         kind: "file",
-        content: `export function validate_a(value: any): boolean {
-  return typeof value === 'string';
-}
-
-`,
       },
       "server.ts": {
         kind: "file",
-        content: `import express from "express";
-import * as api from "./api";
-import * as validation from "./validation";
-import { endpoint } from "./endpoints/endpoint";
-
-const PORT = 3010;
-
-const app = express();
-
-app.post("/endpoint", async (req, res, next) => {
-  try {
-    const response: api.a = await endpoint();
-    if (!validation.validate_a(response)) {
-      throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
-    }
-    res.json(response);
-  } catch (err) {
-    next(err);
-  }
-});
-
-// tslint:disable-next-line no-console
-app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
-`,
       },
       "endpoints": {
         kind: "directory",
         children: {
           "endpoint.ts": {
             kind: "file",
-            content: `import { a } from "../api";
-
-export async function endpoint(): Promise<a> {
-  throw new Error("Unimplemented.");
-}
-`,
           },
         },
       },

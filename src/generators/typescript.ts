@@ -1,6 +1,10 @@
 import TextBuilder from "textbuilder";
 import { Endpoint, PRIMITIVE_TYPES, PrimitiveType, Type } from "../defs";
-import { EndpointDefinitions, TypeDefinitions } from "../resolver";
+import {
+  EndpointDefinitions,
+  endpointResponseName,
+  TypeDefinitions,
+} from "../resolver";
 import { Directory } from "./io";
 
 export interface GenerateOptions {
@@ -24,7 +28,7 @@ export function generateTypeScript(
       throw new Error(`Base URL should not end with /.`);
     }
     const clientBuilder = new TextBuilder();
-    clientBuilder.append('import axios from "axios";\n');
+    clientBuilder.append('import axios, { AxiosError } from "axios";\n');
     clientBuilder.append('import * as api from "./api";\n');
     clientBuilder.append('import * as validation from "./validation";\n\n');
     clientBuilder.append(`const URL = \"${options.client.baseUrl}\";\n`);
@@ -91,6 +95,10 @@ export function generateTypeScript(
   for (const [name, type] of Object.entries(typeDefinitions)) {
     appendValidateMethods(validationBuilder, type, name);
   }
+  for (const primitiveType of PRIMITIVE_TYPES) {
+    appendValidateMethods(validationBuilder, primitiveType, primitiveType);
+  }
+  appendValidateMethods(validationBuilder, "void", "void");
   directory.children["validation.ts"] = {
     kind: "file",
     content: validationBuilder.build(),
@@ -109,14 +117,14 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
     }
   }
   if (endpoint.input !== "void") {
-    endpointArguments.push(`request: api.${endpoint.input}`);
+    endpointArguments.push(
+      `request: ${externalOrPrimitive("api", endpoint.input)}`,
+    );
   }
   clientBuilder.append(
     `export async function ${endpoint.name}(${endpointArguments.join(
       ", ",
-    )}): Promise<${
-      endpoint.output === "void" ? "void" : `api.${endpoint.output}`
-    }> {`,
+    )}): Promise<api.${endpointResponseName(endpoint)}> {`,
   );
   clientBuilder.indented(() => {
     if (endpoint.headers) {
@@ -150,33 +158,73 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
       }
     }
     clientBuilder.append("`;\n");
-    if (endpoint.output !== "void") {
-      clientBuilder.append("const response = ");
-    }
-    clientBuilder.append(`await axios({`);
+    clientBuilder.append("let data: any;\n");
+    clientBuilder.append("let statusCode: number;\n");
+    clientBuilder.append("let statusText: string;\n");
+    clientBuilder.append("try {");
     clientBuilder.indented(() => {
-      clientBuilder.append("url,\n");
-      clientBuilder.append(`method: "${endpoint.method}",\n`);
-      if (endpoint.input !== "void") {
-        clientBuilder.append("data: request,\n");
-      }
-      if (endpoint.headers) {
-        clientBuilder.append("headers,\n");
-      }
-    });
-    clientBuilder.append("});\n");
-    if (endpoint.output !== "void") {
-      clientBuilder.append(
-        `if (!validation.validate_${endpoint.output}(response.data)) {`,
-      );
+      clientBuilder.append("const response = await axios({");
       clientBuilder.indented(() => {
+        clientBuilder.append("url,\n");
+        clientBuilder.append(`method: "${endpoint.method}",\n`);
+        clientBuilder.append('responseType: "json",\n');
+        if (endpoint.input !== "void") {
+          clientBuilder.append("data: request,\n");
+        }
+        if (endpoint.headers) {
+          clientBuilder.append("headers,\n");
+        }
+      });
+      clientBuilder.append("});\n");
+      clientBuilder.append("data = response.data;\n");
+      clientBuilder.append("statusCode = response.status;\n");
+      clientBuilder.append("statusText = response.statusText;\n");
+    });
+    clientBuilder.append("} catch (e) {");
+    clientBuilder.indented(() => {
+      clientBuilder.append("const axiosError = e as AxiosError;\n");
+      clientBuilder.append("if (axiosError.response) {");
+      clientBuilder.indented(() => {
+        clientBuilder.append("data = axiosError.response.data;\n");
+        clientBuilder.append("statusCode = axiosError.response.status;\n");
+        clientBuilder.append("statusText = axiosError.response.statusText;\n");
+      });
+      clientBuilder.append("} else {");
+      clientBuilder.indented(() => {
+        clientBuilder.append("statusCode = 503;\n");
         clientBuilder.append(
-          "throw new Error(`Invalid response: ${JSON.stringify(response.data, null, 2)}`);",
+          "statusText = axiosError.code || axiosError.message;\n",
         );
       });
-      clientBuilder.append("}\n");
-      clientBuilder.append("return response.data;\n");
-    }
+      clientBuilder.append("}");
+    });
+    clientBuilder.append("}\n");
+    clientBuilder.append("switch (statusCode) {");
+    clientBuilder.indented(() => {
+      for (const endpointOutput of endpoint.outputs) {
+        clientBuilder.append(`case ${endpointOutput.statusCode}:`);
+        clientBuilder.indented(() => {
+          clientBuilder.append(
+            `if (!validation.validate_${endpointOutput.type}(data)) {`,
+          );
+          clientBuilder.indented(() => {
+            clientBuilder.append(
+              "throw new Error(`Invalid response: ${JSON.stringify(data, null, 2)}`);",
+            );
+          });
+          clientBuilder.append("}\n");
+          clientBuilder.append("break;");
+        });
+      }
+      clientBuilder.append("default:");
+      clientBuilder.indented(() => {
+        clientBuilder.append(
+          "throw new Error(`Unexpected status: ${statusCode} ${statusText}`);",
+        );
+      });
+    });
+    clientBuilder.append("}\n");
+    clientBuilder.append("return data;");
   });
   clientBuilder.append("}");
 }
@@ -257,7 +305,10 @@ function appendServerEndpoint(
       if (endpoint.input !== "void") {
         args.push("request");
         serverBuilder.append(
-          `const request: api.${endpoint.input} = req.body;\n`,
+          `const request: ${externalOrPrimitive(
+            "api",
+            endpoint.input,
+          )} = req.body;\n`,
         );
         serverBuilder.append(
           `if (!validation.validate_${endpoint.input}(request)) {`,
@@ -269,26 +320,43 @@ function appendServerEndpoint(
         });
         serverBuilder.append("}\n");
       }
-      if (endpoint.output !== "void") {
-        serverBuilder.append(`const response: api.${endpoint.output} = `);
-      }
-      serverBuilder.append(`await ${endpoint.name}(${args.join(", ")});\n`);
-      if (endpoint.output !== "void") {
-        serverBuilder.append(
-          `if (!validation.validate_${endpoint.output}(response)) {`,
-        );
+      serverBuilder.append(
+        `const response: api.${endpointResponseName(endpoint)} = await ${
+          endpoint.name
+        }(${args.join(", ")});\n`,
+      );
+      serverBuilder.append("let statusCode: number;\n");
+      serverBuilder.append("switch (response.kind) {");
+      serverBuilder.indented(() => {
+        for (const endpointOutput of endpoint.outputs) {
+          serverBuilder.append(`case "${endpointOutput.name}":`);
+          serverBuilder.indented(() => {
+            serverBuilder.append(
+              `if (!validation.validate_${
+                endpointOutput.type
+              }(response.data)) {`,
+            );
+            serverBuilder.indented(() => {
+              serverBuilder.append(
+                "throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);",
+              );
+            });
+            serverBuilder.append("}\n");
+            serverBuilder.append(
+              `statusCode = ${endpointOutput.statusCode};\n`,
+            );
+            serverBuilder.append("break;");
+          });
+        }
+        serverBuilder.append("default:");
         serverBuilder.indented(() => {
           serverBuilder.append(
             "throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);",
           );
         });
-        serverBuilder.append("}\n");
-      }
-      if (endpoint.output !== "void") {
-        serverBuilder.append(`res.json(response);\n`);
-      } else {
-        serverBuilder.append("res.end();\n");
-      }
+      });
+      serverBuilder.append("}\n");
+      serverBuilder.append("res.status(statusCode).json(response);\n");
     });
     serverBuilder.append("} catch (err) {");
     serverBuilder.indented(() => {
@@ -319,18 +387,16 @@ function generateEndpointImplementation(
     args.push(`request: ${endpoint.input}`);
     importedTypes.push(endpoint.input);
   }
-  if (endpoint.output !== "void") {
-    importedTypes.push(endpoint.output);
-  }
+  importedTypes.push(endpointResponseName(endpoint));
   if (importedTypes.length > 0) {
     codeBuilder.append(
       `import { ${importedTypes.join(", ")} } from "../api";\n\n`,
     );
   }
   codeBuilder.append(
-    `export async function ${endpoint.name}(${args.join(", ")}): Promise<${
-      endpoint.output
-    }> {`,
+    `export async function ${endpoint.name}(${args.join(
+      ", ",
+    )}): Promise<${endpointResponseName(endpoint)}> {`,
   );
   codeBuilder.indented(() => {
     codeBuilder.append(`throw new Error("Unimplemented.");`);
@@ -423,9 +489,11 @@ function appendValidateMethods(
 ) {
   if (typeof type === "string") {
     // TypeName.
-    if (PRIMITIVE_TYPES.has(type)) {
+    if (type === "void" || PRIMITIVE_TYPES.has(type)) {
       appendValidateMethod(validationBuilder, name, () => {
-        if (type === "bool") {
+        if (type === "void") {
+          validationBuilder.append("return value === undefined;");
+        } else if (type === "bool") {
           validationBuilder.append("return typeof value === 'boolean';");
         } else if (type === "int" || type === "long") {
           validationBuilder.append(
@@ -530,6 +598,14 @@ function appendValidateMethod(
   );
   validationBuilder.indented(body);
   validationBuilder.append("}\n\n");
+}
+
+function externalOrPrimitive(externalNamespace: string, typeName: string) {
+  if (PRIMITIVE_TYPES.has(typeName)) {
+    return primitiveTypeToTypeScript(typeName as PrimitiveType);
+  } else {
+    return `${externalNamespace}.${typeName}`;
+  }
 }
 
 function primitiveTypeToTypeScript(typeName: PrimitiveType) {
