@@ -188,6 +188,9 @@ export function validate_GetUser_Response(value: any): boolean {
   if (validate_GetUser_Response_1(value)) {
     return true;
   }
+  if (validate_GetUser_Response_2(value)) {
+    return true;
+  }
   return false;
 }
 
@@ -231,6 +234,20 @@ export function validate_GetUser_Response_1_kind(value: any): boolean {
 
 export function validate_GetUser_Response_1_data(value: any): boolean {
   return typeof value === "string";
+}
+
+export function validate_GetUser_Response_2(value: any): boolean {
+  if (!(value instanceof Object)) {
+    return false;
+  }
+  if (!validate_GetUser_Response_2_kind(value.kind)) {
+    return false;
+  }
+  return true;
+}
+
+export function validate_GetUser_Response_2_kind(value: any): boolean {
+  return value === "notfound";
 }
 
 export function validate_bool(value: any): boolean {

@@ -136,6 +136,11 @@ export async function getUser(headers: api.AuthRequired, id: string): Promise<ap
         throw new Error(`Invalid response: ${JSON.stringify(data, null, 2)}`);
       }
       break;
+    case 404:
+      if (!validation.validate_void(data)) {
+        throw new Error(`Invalid response: ${JSON.stringify(data, null, 2)}`);
+      }
+      break;
     default:
       throw new Error(`Unexpected status: ${statusCode} ${statusText}`);
   }

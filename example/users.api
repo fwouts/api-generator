@@ -22,6 +22,7 @@ type ListUsersResponse = User[]
 endpoint getUser: GET /users/:id void
 -> success 200 User
 -> failure 403 string
+-> notfound 404 void
 
 type User = {
   name: string

@@ -331,17 +331,19 @@ function appendServerEndpoint(
         for (const endpointOutput of endpoint.outputs) {
           serverBuilder.append(`case "${endpointOutput.name}":`);
           serverBuilder.indented(() => {
-            serverBuilder.append(
-              `if (!validation.validate_${
-                endpointOutput.type
-              }(response.data)) {`,
-            );
-            serverBuilder.indented(() => {
+            if (endpointOutput.type !== "void") {
               serverBuilder.append(
-                "throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);",
+                `if (!validation.validate_${
+                  endpointOutput.type
+                }(response.data)) {`,
               );
-            });
-            serverBuilder.append("}\n");
+              serverBuilder.indented(() => {
+                serverBuilder.append(
+                  "throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);",
+                );
+              });
+              serverBuilder.append("}\n");
+            }
             serverBuilder.append(
               `statusCode = ${endpointOutput.statusCode};\n`,
             );

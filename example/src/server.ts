@@ -95,6 +95,9 @@ app.get("/users/:id", async (req, res, next) => {
         }
         statusCode = 403;
         break;
+      case "notfound":
+        statusCode = 404;
+        break;
       default:
         throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);
     }

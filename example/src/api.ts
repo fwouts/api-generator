@@ -39,4 +39,6 @@ export type GetUser_Response = {
 } | {
   kind: "failure";
   data: string;
+} | {
+  kind: "notfound";
 };

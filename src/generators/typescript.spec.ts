@@ -610,9 +610,6 @@ app.delete("/users/:id", async (req, res, next) => {
     let statusCode: number;
     switch (response.kind) {
       case \"success\":
-        if (!validation.validate_void(response.data)) {
-          throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
-        }
         statusCode = 200;
         break;
       case \"failure\":
