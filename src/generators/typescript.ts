@@ -98,7 +98,6 @@ export function generateTypeScript(
   for (const primitiveType of PRIMITIVE_TYPES) {
     appendValidateMethods(validationBuilder, primitiveType, primitiveType);
   }
-  appendValidateMethods(validationBuilder, "void", "void");
   directory.children["validation.ts"] = {
     kind: "file",
     content: validationBuilder.build(),
@@ -204,15 +203,19 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
       for (const endpointOutput of endpoint.outputs) {
         clientBuilder.append(`case ${endpointOutput.statusCode}:`);
         clientBuilder.indented(() => {
-          clientBuilder.append(
-            `if (!validation.validate_${endpointOutput.type}(data)) {`,
-          );
-          clientBuilder.indented(() => {
+          if (endpointOutput.type === "void") {
+            clientBuilder.append("data = undefined;\n");
+          } else {
             clientBuilder.append(
-              "throw new Error(`Invalid response: ${JSON.stringify(data, null, 2)}`);",
+              `if (!validation.validate_${endpointOutput.type}(data)) {`,
             );
-          });
-          clientBuilder.append("}\n");
+            clientBuilder.indented(() => {
+              clientBuilder.append(
+                "throw new Error(`Invalid response: ${JSON.stringify(data, null, 2)}`);",
+              );
+            });
+            clientBuilder.append("}\n");
+          }
           clientBuilder.append("break;");
         });
       }
@@ -325,7 +328,6 @@ function appendServerEndpoint(
           endpoint.name
         }(${args.join(", ")});\n`,
       );
-      serverBuilder.append("let statusCode: number;\n");
       serverBuilder.append("switch (response.kind) {");
       serverBuilder.indented(() => {
         for (const endpointOutput of endpoint.outputs) {
@@ -344,9 +346,12 @@ function appendServerEndpoint(
               });
               serverBuilder.append("}\n");
             }
-            serverBuilder.append(
-              `statusCode = ${endpointOutput.statusCode};\n`,
-            );
+            serverBuilder.append(`res.status(${endpointOutput.statusCode});\n`);
+            if (endpointOutput.type === "void") {
+              serverBuilder.append("res.end();\n");
+            } else {
+              serverBuilder.append("res.json(response.data);\n");
+            }
             serverBuilder.append("break;");
           });
         }
@@ -358,7 +363,6 @@ function appendServerEndpoint(
         });
       });
       serverBuilder.append("}\n");
-      serverBuilder.append("res.status(statusCode).json(response);\n");
     });
     serverBuilder.append("} catch (err) {");
     serverBuilder.indented(() => {

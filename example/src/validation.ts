@@ -277,7 +277,3 @@ export function validate_string(value: any): boolean {
 export function validate_null(value: any): boolean {
   return value === null;
 }
-
-export function validate_void(value: any): boolean {
-  return value === undefined;
-}
