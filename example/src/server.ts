@@ -1,14 +1,18 @@
 import express from "express";
 import * as api from "./api";
+import * as validation from "./validation";
+
+// start-generated-section endpointImports
 import { createUser } from "./endpoints/createUser";
 import { getUser } from "./endpoints/getUser";
 import { listUsers } from "./endpoints/listUsers";
-import * as validation from "./validation";
+// end-generated-section endpointImports
 
-const PORT = 3010;
+const PORT = 8080;
 
 const app = express();
 
+// start-generated-section httpHooks
 app.post("/users", async (req, res, next) => {
   try {
     const request: api.CreateUserRequest = req.body;
@@ -107,6 +111,7 @@ app.get("/users/:id", async (req, res, next) => {
     next(err);
   }
 });
+// end-generated-section httpHooks
 
 // tslint:disable-next-line no-console
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));

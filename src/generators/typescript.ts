@@ -5,7 +5,7 @@ import {
   endpointResponseName,
   TypeDefinitions,
 } from "../resolver";
-import { Directory } from "./io";
+import { Directory, OverridableFile } from "./io";
 
 export interface GenerateOptions {
   client?: {
@@ -27,56 +27,85 @@ export function generateTypeScript(
     if (options.client.baseUrl.endsWith("/")) {
       throw new Error(`Base URL should not end with /.`);
     }
-    const clientBuilder = new TextBuilder();
-    clientBuilder.append('import axios, { AxiosError } from "axios";\n');
-    clientBuilder.append('import * as api from "./api";\n');
-    clientBuilder.append('import * as validation from "./validation";\n\n');
-    clientBuilder.append(`const URL = \"${options.client.baseUrl}\";\n`);
-    for (const endpoint of Object.values(endpointDefinitions)) {
-      clientBuilder.append("\n");
-      appendClientEndpoint(clientBuilder, endpoint);
-      clientBuilder.append("\n");
-    }
-    directory.children["client.ts"] = {
-      kind: "file",
-      content: clientBuilder.build(),
+    const clientFile: OverridableFile = {
+      kind: "overridable-file",
+      markerFormat: "// %marker%",
+      template: `import axios, { AxiosError } from "axios";
+import * as api from "./api";
+import * as validation from "./validation";
+
+const URL = "${options.client.baseUrl}";
+
+%endpoints%
+`,
+      content: {
+        endpoints: "",
+      },
     };
+    const clientEndpointsBuilder = new TextBuilder();
+    let endpointFirstBlock = true;
+    for (const endpoint of Object.values(endpointDefinitions)) {
+      if (!endpointFirstBlock) {
+        clientEndpointsBuilder.append("\n\n");
+      }
+      appendClientEndpoint(clientEndpointsBuilder, endpoint);
+      endpointFirstBlock = false;
+    }
+    clientFile.content.endpoints = clientEndpointsBuilder.build();
+    directory.children["client.ts"] = clientFile;
   }
   if (options.server) {
-    const endpointsDirectory: Directory = {
+    directory.children.endpoints = {
       kind: "directory",
       children: {},
     };
-    directory.children.endpoints = endpointsDirectory;
-    const serverBuilder = new TextBuilder();
-    serverBuilder.append('import express from "express";\n');
-    serverBuilder.append('import * as api from "./api";\n');
-    serverBuilder.append('import * as validation from "./validation";\n');
+    const serverFile: OverridableFile = {
+      kind: "overridable-file",
+      markerFormat: "// %marker%",
+      template: `import express from "express";
+import * as api from "./api";
+import * as validation from "./validation";
+
+%endpointImports%
+
+const PORT = 3010;
+
+const app = express();
+
+%httpHooks%
+
+// tslint:disable-next-line no-console
+app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
+`,
+      content: {
+        endpointImports: Object.values(endpointDefinitions)
+          .map(
+            (endpoint) =>
+              `import { ${endpoint.name} } from "./endpoints/${
+                endpoint.name
+              }";`,
+          )
+          .join("\n"),
+        httpHooks: "",
+      },
+    };
+    const httpHooksBuilder = new TextBuilder();
+    let endpointFirstBlock = true;
     for (const endpoint of Object.values(endpointDefinitions)) {
-      serverBuilder.append(
-        `import { ${endpoint.name} } from "./endpoints/${endpoint.name}";\n`,
-      );
-    }
-    serverBuilder.append("\n");
-    serverBuilder.append("const PORT = 3010;\n\n");
-    serverBuilder.append("const app = express();\n\n");
-    for (const endpoint of Object.values(endpointDefinitions)) {
-      appendServerEndpoint(typeDefinitions, serverBuilder, endpoint);
-      endpointsDirectory.children[endpoint.name + ".ts"] = {
+      if (!endpointFirstBlock) {
+        httpHooksBuilder.append("\n\n");
+      }
+      appendServerEndpoint(typeDefinitions, httpHooksBuilder, endpoint);
+      endpointFirstBlock = false;
+
+      directory.children.endpoints.children[endpoint.name + ".ts"] = {
         kind: "file",
         content: generateEndpointImplementation(typeDefinitions, endpoint),
         doNotOverride: true,
       };
-      serverBuilder.append("\n\n");
     }
-    serverBuilder.append("// tslint:disable-next-line no-console\n");
-    serverBuilder.append(
-      "app.listen(PORT, () => console.log(`Listening on port ${PORT}`));\n",
-    );
-    directory.children["server.ts"] = {
-      kind: "file",
-      content: serverBuilder.build(),
-    };
+    serverFile.content.httpHooks = httpHooksBuilder.build();
+    directory.children["server.ts"] = serverFile;
   }
   let apiFirstBlock = true;
   const apiBuilder = new TextBuilder();

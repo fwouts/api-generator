@@ -3,8 +3,18 @@ import "jest";
 import path from "path";
 import ts from "typescript";
 import { parse } from "../parser";
-import { resolve } from "../resolver";
-import { generateTypeScript } from "./typescript";
+import { EndpointDefinitions, resolve, TypeDefinitions } from "../resolver";
+import { Directory, input, output } from "./io";
+import { GenerateOptions, generateTypeScript } from "./typescript";
+
+beforeAll(() => {
+  fs.removeSync("test-output");
+  fs.mkdirSync("test-output");
+});
+
+afterAll(() => {
+  fs.removeSync("test-output");
+});
 
 // IMPORTANT NOTE: Jest gets stuck indefinitely when a string containing "import ... from"
 // appears in our code. That's why we hack around it by using `${"from"}` instead of "from".
@@ -66,7 +76,7 @@ test("generator only types", () => {
     throw new Error(`Invalid test data:\n${API.errors.join("\n")}`);
   }
   expect(
-    generateTypeScript(API.definedEndpoints, API.definedTypes),
+    generateTypeScriptWrapped(API.definedEndpoints, API.definedTypes),
   ).toMatchObject({
     kind: "directory",
     children: {
@@ -141,7 +151,10 @@ test("generator creates enforceable types", () => {
   if (API.kind !== "success") {
     throw new Error(`Invalid test data:\n${API.errors.join("\n")}`);
   }
-  const generated = generateTypeScript(API.definedEndpoints, API.definedTypes);
+  const generated = generateTypeScriptWrapped(
+    API.definedEndpoints,
+    API.definedTypes,
+  );
   const apiSourceFile = generated.children["api.ts"];
   expect(apiSourceFile).toBeTruthy();
   if (apiSourceFile.kind !== "file") {
@@ -176,7 +189,10 @@ test("generator creates valid type checkers", () => {
   if (API.kind !== "success") {
     throw new Error(`Invalid test data:\n${API.errors.join("\n")}`);
   }
-  const generated = generateTypeScript(API.definedEndpoints, API.definedTypes);
+  const generated = generateTypeScriptWrapped(
+    API.definedEndpoints,
+    API.definedTypes,
+  );
   const apiSourceFile = generated.children["api.ts"];
   expect(apiSourceFile).toBeTruthy();
   if (apiSourceFile.kind !== "file") {
@@ -272,7 +288,7 @@ test("generator with client", () => {
     throw new Error(`Invalid test data:\n${API.errors.join("\n")}`);
   }
   expect(
-    generateTypeScript(API.definedEndpoints, API.definedTypes, {
+    generateTypeScriptWrapped(API.definedEndpoints, API.definedTypes, {
       client: {
         baseUrl: "https://api.test.com",
       },
@@ -288,6 +304,7 @@ import * as validation from \"./validation\";
 
 const URL = \"https://api.test.com\";
 
+// start-generated-section endpoints
 export async function createUser(request: api.CreateUserRequest): Promise<api.CreateUser_Response> {
   if (!validation.validate_CreateUserRequest(request)) {
     throw new Error(\`Invalid request: \${JSON.stringify(request, null, 2)}\`);
@@ -487,6 +504,7 @@ export async function deleteUser(headers: api.AuthRequired, id: string): Promise
       throw new Error(\`Unexpected status: \${statusCode} \${statusText}\`);
   }
 }
+// end-generated-section endpoints
 `,
       },
     },
@@ -498,7 +516,7 @@ test("generator with server", () => {
     throw new Error(`Invalid test data:\n${API.errors.join("\n")}`);
   }
   expect(
-    generateTypeScript(API.definedEndpoints, API.definedTypes, {
+    generateTypeScriptWrapped(API.definedEndpoints, API.definedTypes, {
       server: {},
     }),
   ).toMatchObject({
@@ -509,15 +527,19 @@ test("generator with server", () => {
         content: `import express from "express";
 import * as api from "./api";
 import * as validation from "./validation";
+
+// start-generated-section endpointImports
 import { createUser } from "./endpoints/createUser";
 import { listUsers } from "./endpoints/listUsers";
 import { getUser } from "./endpoints/getUser";
 import { deleteUser } from "./endpoints/deleteUser";
+// end-generated-section endpointImports
 
 const PORT = 3010;
 
 const app = express();
 
+// start-generated-section httpHooks
 app.post("/users", async (req, res, next) => {
   try {
     const request: api.CreateUserRequest = req.body;
@@ -642,6 +664,7 @@ app.delete("/users/:id", async (req, res, next) => {
     next(err);
   }
 });
+// end-generated-section httpHooks
 
 // tslint:disable-next-line no-console
 app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
@@ -656,7 +679,6 @@ export async function createUser(request: CreateUserRequest): Promise<CreateUser
   throw new Error("Unimplemented.");
 }
 `,
-            doNotOverride: true,
             kind: "file",
           },
           "deleteUser.ts": {
@@ -666,7 +688,6 @@ export async function deleteUser(headers: AuthRequired, id: string): Promise<Del
   throw new Error("Unimplemented.");
 }
 `,
-            doNotOverride: true,
             kind: "file",
           },
           "getUser.ts": {
@@ -676,7 +697,6 @@ export async function getUser(headers: AuthRequired, id: string): Promise<GetUse
   throw new Error("Unimplemented.");
 }
 `,
-            doNotOverride: true,
             kind: "file",
           },
           "listUsers.ts": {
@@ -686,7 +706,6 @@ export async function listUsers(headers: AuthOptional): Promise<ListUsers_Respon
   throw new Error("Unimplemented.");
 }
 `,
-            doNotOverride: true,
             kind: "file",
           },
         },
@@ -695,6 +714,20 @@ export async function listUsers(headers: AuthOptional): Promise<ListUsers_Respon
     },
   });
 });
+
+function generateTypeScriptWrapped(
+  endpointDefinitions: EndpointDefinitions,
+  typeDefinitions: TypeDefinitions,
+  options?: GenerateOptions,
+) {
+  const directory = generateTypeScript(
+    endpointDefinitions,
+    typeDefinitions,
+    options,
+  );
+  output(directory, "test-output");
+  return input("test-output") as Directory;
+}
 
 function compile(sources: {
   [name: string]: string;

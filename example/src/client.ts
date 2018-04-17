@@ -4,6 +4,7 @@ import * as validation from "./validation";
 
 const URL = "https://api.test.com";
 
+// start-generated-section endpoints
 export async function createUser(request: api.CreateUserRequest): Promise<api.CreateUser_Response> {
   if (!validation.validate_CreateUserRequest(request)) {
     throw new Error(`Invalid request: ${JSON.stringify(request, null, 2)}`);
@@ -160,3 +161,4 @@ export async function getUser(headers: api.AuthRequired, id: string): Promise<ap
       throw new Error(`Unexpected status: ${statusCode} ${statusText}`);
   }
 }
+// end-generated-section endpoints
