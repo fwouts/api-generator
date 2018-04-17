@@ -62,7 +62,9 @@ const URL = "${options.client.baseUrl}";
     const serverFile: OverridableFile = {
       kind: "overridable-file",
       markerFormat: "// %marker%",
-      template: `import express from "express";
+      template: `import bodyParser from "body-parser";
+import cors from "cors";
+import express from "express";
 import * as api from "./api";
 import * as validation from "./validation";
 
@@ -71,6 +73,16 @@ import * as validation from "./validation";
 const PORT = 3010;
 
 const app = express();
+app.use(bodyParser.json());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      callback(null, true);
+      // If you want to only allow some origins, use the following instead:
+      // callback(new Error(\`Access is not allowed from \${origin}.\`));
+    },
+  }),
+);
 
 %httpHooks%
 

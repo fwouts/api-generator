@@ -1,3 +1,5 @@
+import bodyParser from "body-parser";
+import cors from "cors";
 import express from "express";
 import * as api from "./api";
 import * as validation from "./validation";
@@ -11,6 +13,16 @@ import { listUsers } from "./endpoints/listUsers";
 const PORT = 8080;
 
 const app = express();
+app.use(bodyParser.json());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      callback(null, true);
+      // If you want to only allow some origins, use the following instead:
+      // callback(new Error(`Access is not allowed from ${origin}.`));
+    },
+  }),
+);
 
 // start-generated-section httpHooks
 app.post("/users", async (req, res, next) => {
