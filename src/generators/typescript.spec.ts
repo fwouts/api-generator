@@ -700,7 +700,7 @@ app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
       "endpoints": {
         children: {
           "createUser.ts": {
-            content: `import { CreateUserRequest, CreateUser_Response } from "../api";
+            content: `import { CreateUserRequest, CreateUser_Response } from "../api/types";
 
 export async function createUser(request: CreateUserRequest): Promise<CreateUser_Response> {
   throw new Error("Unimplemented.");
@@ -709,7 +709,7 @@ export async function createUser(request: CreateUserRequest): Promise<CreateUser
             kind: "file",
           },
           "deleteUser.ts": {
-            content: `import { AuthRequired, DeleteUser_Response } from "../api";
+            content: `import { AuthRequired, DeleteUser_Response } from "../api/types";
 
 export async function deleteUser(headers: AuthRequired, id: string): Promise<DeleteUser_Response> {
   throw new Error("Unimplemented.");
@@ -718,7 +718,7 @@ export async function deleteUser(headers: AuthRequired, id: string): Promise<Del
             kind: "file",
           },
           "getUser.ts": {
-            content: `import { AuthRequired, GetUser_Response } from "../api";
+            content: `import { AuthRequired, GetUser_Response } from "../api/types";
 
 export async function getUser(headers: AuthRequired, id: string): Promise<GetUser_Response> {
   throw new Error("Unimplemented.");
@@ -727,7 +727,7 @@ export async function getUser(headers: AuthRequired, id: string): Promise<GetUse
             kind: "file",
           },
           "listUsers.ts": {
-            content: `import { AuthOptional, ListUsers_Response } from "../api";
+            content: `import { AuthOptional, ListUsers_Response } from "../api/types";
 
 export async function listUsers(headers: AuthOptional): Promise<ListUsers_Response> {
   throw new Error("Unimplemented.");

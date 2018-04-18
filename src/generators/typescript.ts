@@ -455,7 +455,7 @@ function generateEndpointImplementation(
   importedTypes.push(endpointResponseName(endpoint));
   if (importedTypes.length > 0) {
     codeBuilder.append(
-      `import { ${importedTypes.join(", ")} } from "../api";\n\n`,
+      `import { ${importedTypes.join(", ")} } from "../api/types";\n\n`,
     );
   }
   codeBuilder.append(
@@ -620,7 +620,9 @@ function appendValidateMethods(
     }
   } else if (type.kind === "struct") {
     appendValidateMethod(validatorsBuilder, name, declaredType, () => {
-      validatorsBuilder.append("if (!(value instanceof Object)) {");
+      validatorsBuilder.append(
+        "if (typeof value !== 'object' || value === null) {",
+      );
       validatorsBuilder.indented(() =>
         validatorsBuilder.append("return false;"),
       );

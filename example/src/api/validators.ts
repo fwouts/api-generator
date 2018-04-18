@@ -1,7 +1,7 @@
 import * as types from "./types";
 
 export function validate_CreateUserRequest(value: any): value is types.CreateUserRequest {
-  if (!(value instanceof Object)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
   if (!validate_CreateUserRequest_name(value.name)) {
@@ -22,7 +22,7 @@ export function validate_CreateUserRequest_password(value: any): boolean {
 }
 
 export function validate_CreateUserResponse(value: any): value is types.CreateUserResponse {
-  if (!(value instanceof Object)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
   if (!validate_CreateUserResponse_id(value.id)) {
@@ -52,7 +52,7 @@ export function validate_ListUsersResponse_item(value: any): boolean {
 }
 
 export function validate_User(value: any): value is types.User {
-  if (!(value instanceof Object)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
   if (!validate_User_name(value.name)) {
@@ -66,7 +66,7 @@ export function validate_User_name(value: any): boolean {
 }
 
 export function validate_AuthRequired(value: any): value is types.AuthRequired {
-  if (!(value instanceof Object)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
   if (!validate_AuthRequired_Authorization(value.Authorization)) {
@@ -90,7 +90,7 @@ export function validate_CreateUser_Response(value: any): value is types.CreateU
 }
 
 export function validate_CreateUser_Response_0(value: any): boolean {
-  if (!(value instanceof Object)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
   if (!validate_CreateUser_Response_0_kind(value.kind)) {
@@ -111,7 +111,7 @@ export function validate_CreateUser_Response_0_data(value: any): boolean {
 }
 
 export function validate_CreateUser_Response_1(value: any): boolean {
-  if (!(value instanceof Object)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
   if (!validate_CreateUser_Response_1_kind(value.kind)) {
@@ -142,7 +142,7 @@ export function validate_ListUsers_Response(value: any): value is types.ListUser
 }
 
 export function validate_ListUsers_Response_0(value: any): boolean {
-  if (!(value instanceof Object)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
   if (!validate_ListUsers_Response_0_kind(value.kind)) {
@@ -163,7 +163,7 @@ export function validate_ListUsers_Response_0_data(value: any): boolean {
 }
 
 export function validate_ListUsers_Response_1(value: any): boolean {
-  if (!(value instanceof Object)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
   if (!validate_ListUsers_Response_1_kind(value.kind)) {
@@ -197,7 +197,7 @@ export function validate_GetUser_Response(value: any): value is types.GetUser_Re
 }
 
 export function validate_GetUser_Response_0(value: any): boolean {
-  if (!(value instanceof Object)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
   if (!validate_GetUser_Response_0_kind(value.kind)) {
@@ -218,7 +218,7 @@ export function validate_GetUser_Response_0_data(value: any): boolean {
 }
 
 export function validate_GetUser_Response_1(value: any): boolean {
-  if (!(value instanceof Object)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
   if (!validate_GetUser_Response_1_kind(value.kind)) {
@@ -239,7 +239,7 @@ export function validate_GetUser_Response_1_data(value: any): boolean {
 }
 
 export function validate_GetUser_Response_2(value: any): boolean {
-  if (!(value instanceof Object)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
   if (!validate_GetUser_Response_2_kind(value.kind)) {
