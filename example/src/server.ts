@@ -58,7 +58,7 @@ app.post("/users", async (req, res, next) => {
 app.get("/users", async (req, res, next) => {
   try {
     const headers: types.AuthRequired = {
-      Authorization: req.header("Authorization")!,
+      Authorization: req.header("Authorization") || "",
     };
     if (!validators.validate_AuthRequired(headers)) {
       throw new Error(`Invalid headers: ${JSON.stringify(headers, null, 2)}`);
@@ -90,7 +90,7 @@ app.get("/users", async (req, res, next) => {
 app.get("/users/:id", async (req, res, next) => {
   try {
     const headers: types.AuthRequired = {
-      Authorization: req.header("Authorization")!,
+      Authorization: req.header("Authorization") || "",
     };
     if (!validators.validate_AuthRequired(headers)) {
       throw new Error(`Invalid headers: ${JSON.stringify(headers, null, 2)}`);

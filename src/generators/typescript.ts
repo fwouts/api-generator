@@ -330,7 +330,7 @@ function appendServerEndpoint(
           )) {
             if (fieldType === "string") {
               serverBuilder.append(
-                `${fieldName}: req.header("${fieldName}")!,\n`,
+                `${fieldName}: req.header("${fieldName}") || "",\n`,
               );
             } else if (
               typeof fieldType === "object" &&
