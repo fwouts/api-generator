@@ -143,7 +143,7 @@ type a = b
     resolve(
       parse(`
 @headers(c)
-endpoint myendpoint: GET /endpoint a
+endpoint myendpoint: POST /endpoint a
 -> success 200 b
 -> failure 403 d
 `),
@@ -174,6 +174,22 @@ endpoint myendpoint: GET /endpoint void
     errors: [
       "Multiple outputs with the name success.",
       "Multiple outputs for the status code 403.",
+    ],
+  });
+});
+
+test("resolver rejects GET endpoints with a non-void input", () => {
+  expect(
+    resolve(
+      parse(`
+endpoint myendpoint: GET /endpoint string
+-> success 200 string
+`),
+    ),
+  ).toEqual({
+    kind: "failure",
+    errors: [
+      "myendpoint must have the input type void because its method is GET.",
     ],
   });
 });

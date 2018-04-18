@@ -69,6 +69,14 @@ export function resolve(api: Api): ResolveResult {
       recordedErrors.push(`No such type ${endpoint.input}.`);
       error = true;
     }
+    if (endpoint.method === "GET" && endpoint.input !== "void") {
+      recordedErrors.push(
+        `${
+          endpoint.name
+        } must have the input type void because its method is GET.`,
+      );
+      error = true;
+    }
     const endpointNames = new Set<string>();
     const endpointStatusCodes = new Set<number>();
     for (const endpointOutput of endpoint.outputs) {
