@@ -1,6 +1,18 @@
-# APIdef
+# API generator
 
-Use **apidef** to declare your API and automatically generate both client and server code.
+An easy way to declare an API and generate both client-side and server-side code.
+
+## Installing
+
+With NPM:
+```
+npm install -g @zenclabs/api
+```
+
+With Yarn:
+```
+yarn global add @zenclabs/api
+```
 
 ## Example
 
@@ -49,15 +61,17 @@ type AuthRequired = {
 We can then generate a TypeScript client and/or server with:
 ```
 # Generate client code
-api generate typescript example.api src --client https://api.example.com
+apidef generate typescript example.api src --client https://api.example.com
 # Output:
-# - src/api.ts
+# - src/api/types.ts
+# - src/api/validators.ts
 # - src/client.ts
 
 # Generate server code
-api generate typescript example.api src --server
+apidef generate typescript example.api src --server
 # Output:
-# - src/api.ts
+# - src/api/types.ts
+# - src/api/validators.ts
 # - src/server.ts
 # - src/endpoints/loginUser.ts
 # - src/endpoints/postMessage.ts
