@@ -582,7 +582,7 @@ function appendValidateMethods(
     }
   } else if (type.kind === "array") {
     appendValidateMethod(validatorsBuilder, name, declaredType, () => {
-      validatorsBuilder.append("if (!(value instanceof Array)) {");
+      validatorsBuilder.append("if (!Array.isArray(value)) {");
       validatorsBuilder.indented(() =>
         validatorsBuilder.append("return false;"),
       );

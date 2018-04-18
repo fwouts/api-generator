@@ -36,7 +36,7 @@ export function validate_CreateUserResponse_id(value: any): boolean {
 }
 
 export function validate_ListUsersResponse(value: any): value is types.ListUsersResponse {
-  if (!(value instanceof Array)) {
+  if (!Array.isArray(value)) {
     return false;
   }
   for (const item of value) {
