@@ -80,9 +80,12 @@ test("generator only types", () => {
   ).toMatchObject({
     kind: "directory",
     children: {
-      "api.ts": {
-        kind: "file",
-        content: `export interface CreateUserRequest {
+      api: {
+        kind: "directory",
+        children: {
+          "types.ts": {
+            kind: "file",
+            content: `export interface CreateUserRequest {
   name: string;
   password?: string;
   roles: Role[];
@@ -142,6 +145,8 @@ export type DeleteUser_Response = {
   data: string;
 };
 `,
+          },
+        },
       },
     },
   });
@@ -155,7 +160,12 @@ test("generator creates enforceable types", () => {
     API.definedEndpoints,
     API.definedTypes,
   );
-  const apiSourceFile = generated.children["api.ts"];
+  const apiDirectory = generated.children.api;
+  expect(apiDirectory).toBeTruthy();
+  if (apiDirectory.kind !== "directory") {
+    throw expect(apiDirectory.kind).toEqual("directory");
+  }
+  const apiSourceFile = apiDirectory.children["types.ts"];
   expect(apiSourceFile).toBeTruthy();
   if (apiSourceFile.kind !== "file") {
     throw expect(apiSourceFile.kind).toEqual("file");
@@ -193,20 +203,25 @@ test("generator creates valid type checkers", () => {
     API.definedEndpoints,
     API.definedTypes,
   );
-  const apiSourceFile = generated.children["api.ts"];
+  const apiDirectory = generated.children.api;
+  expect(apiDirectory).toBeTruthy();
+  if (apiDirectory.kind !== "directory") {
+    throw expect(apiDirectory.kind).toEqual("directory");
+  }
+  const apiSourceFile = apiDirectory.children["types.ts"];
   expect(apiSourceFile).toBeTruthy();
   if (apiSourceFile.kind !== "file") {
     throw expect(apiSourceFile.kind).toEqual("file");
   }
-  const validationSourceFile = generated.children["validation.ts"];
-  expect(validationSourceFile).toBeTruthy();
-  if (validationSourceFile.kind !== "file") {
-    throw expect(validationSourceFile.kind).toEqual("file");
+  const validatorsSourceFile = apiDirectory.children["validators.ts"];
+  expect(validatorsSourceFile).toBeTruthy();
+  if (validatorsSourceFile.kind !== "file") {
+    throw expect(validatorsSourceFile.kind).toEqual("file");
   }
   const { errors, transpiled } = compile({
-    "api.ts": apiSourceFile.content,
-    "validation.ts": validationSourceFile.content,
-    "test.ts": `import * as validation from './validation';
+    "types.ts": apiSourceFile.content,
+    "validators.ts": validatorsSourceFile.content,
+    "test.ts": `import * as validators from './validators';
 
 let validRequest1 = {
   name: "Hello",
@@ -256,30 +271,30 @@ let invalidResponse2 = {
   },
 };
 
-expect(validation.validate_CreateUserRequest(validRequest1)).toBe(true);
-expect(validation.validate_CreateUserRequest(validRequest2)).toBe(true);
-expect(validation.validate_CreateUserRequest(invalidRequest1)).toBe(false);
-expect(validation.validate_CreateUserRequest(invalidRequest2)).toBe(false);
-expect(validation.validate_CreateUser_Response(validResponse1)).toBe(true);
-expect(validation.validate_CreateUser_Response(validResponse2)).toBe(true);
-expect(validation.validate_CreateUser_Response(invalidResponse1)).toBe(false);
-expect(validation.validate_CreateUser_Response(invalidResponse2)).toBe(false);
+expect(validators.validate_CreateUserRequest(validRequest1)).toBe(true);
+expect(validators.validate_CreateUserRequest(validRequest2)).toBe(true);
+expect(validators.validate_CreateUserRequest(invalidRequest1)).toBe(false);
+expect(validators.validate_CreateUserRequest(invalidRequest2)).toBe(false);
+expect(validators.validate_CreateUser_Response(validResponse1)).toBe(true);
+expect(validators.validate_CreateUser_Response(validResponse2)).toBe(true);
+expect(validators.validate_CreateUser_Response(invalidResponse1)).toBe(false);
+expect(validators.validate_CreateUser_Response(invalidResponse2)).toBe(false);
 `,
   });
   expect(errors).toEqual([]);
 
   // This is a fun little hack. We transpile the code above and evaluate it as a test.
   try {
-    fs.writeFileSync(path.join(__dirname, "api.ts"), apiSourceFile.content);
+    fs.writeFileSync(path.join(__dirname, "types.ts"), apiSourceFile.content);
     fs.writeFileSync(
-      path.join(__dirname, "validation.ts"),
-      validationSourceFile.content,
+      path.join(__dirname, "validators.ts"),
+      validatorsSourceFile.content,
     );
     // tslint:disable-next-line no-eval
     eval(transpiled["test.ts"]);
   } finally {
-    fs.unlinkSync(path.join(__dirname, "validation.ts"));
-    fs.unlinkSync(path.join(__dirname, "api.ts"));
+    fs.unlinkSync(path.join(__dirname, "validators.ts"));
+    fs.unlinkSync(path.join(__dirname, "types.ts"));
   }
 });
 
@@ -299,14 +314,14 @@ test("generator with client", () => {
       "client.ts": {
         kind: "file",
         content: `import axios, { AxiosError } from \"axios\";
-import * as api from \"./api\";
-import * as validation from \"./validation\";
+import * as types from \"./api/types\";
+import * as validators from \"./api/validators\";
 
 const URL = \"https://api.test.com\";
 
 // start-generated-section endpoints
-export async function createUser(request: api.CreateUserRequest): Promise<api.CreateUser_Response> {
-  if (!validation.validate_CreateUserRequest(request)) {
+export async function createUser(request: types.CreateUserRequest): Promise<types.CreateUser_Response> {
+  if (!validators.validate_CreateUserRequest(request)) {
     throw new Error(\`Invalid request: \${JSON.stringify(request, null, 2)}\`);
   }
   const url = \`\${URL}/users\`;
@@ -336,7 +351,7 @@ export async function createUser(request: api.CreateUserRequest): Promise<api.Cr
   }
   switch (statusCode) {
     case 200:
-      if (!validation.validate_CreateUserResponseSuccess(data)) {
+      if (!validators.validate_CreateUserResponseSuccess(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
       return {
@@ -344,7 +359,7 @@ export async function createUser(request: api.CreateUserRequest): Promise<api.Cr
         data,
       };
     case 400:
-      if (!validation.validate_string(data)) {
+      if (!validators.validate_string(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
       return {
@@ -356,8 +371,8 @@ export async function createUser(request: api.CreateUserRequest): Promise<api.Cr
   }
 }
 
-export async function listUsers(headers: api.AuthOptional): Promise<api.ListUsers_Response> {
-  if (!validation.validate_AuthOptional(headers)) {
+export async function listUsers(headers: types.AuthOptional): Promise<types.ListUsers_Response> {
+  if (!validators.validate_AuthOptional(headers)) {
     throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
   }
   const url = \`\${URL}/users\`;
@@ -387,7 +402,7 @@ export async function listUsers(headers: api.AuthOptional): Promise<api.ListUser
   }
   switch (statusCode) {
     case 200:
-      if (!validation.validate_ListUsersResponse(data)) {
+      if (!validators.validate_ListUsersResponse(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
       return {
@@ -395,7 +410,7 @@ export async function listUsers(headers: api.AuthOptional): Promise<api.ListUser
         data,
       };
     case 403:
-      if (!validation.validate_string(data)) {
+      if (!validators.validate_string(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
       return {
@@ -407,8 +422,8 @@ export async function listUsers(headers: api.AuthOptional): Promise<api.ListUser
   }
 }
 
-export async function getUser(headers: api.AuthRequired, id: string): Promise<api.GetUser_Response> {
-  if (!validation.validate_AuthRequired(headers)) {
+export async function getUser(headers: types.AuthRequired, id: string): Promise<types.GetUser_Response> {
+  if (!validators.validate_AuthRequired(headers)) {
     throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
   }
   const url = \`\${URL}/users/\${id}\`;
@@ -438,7 +453,7 @@ export async function getUser(headers: api.AuthRequired, id: string): Promise<ap
   }
   switch (statusCode) {
     case 200:
-      if (!validation.validate_User(data)) {
+      if (!validators.validate_User(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
       return {
@@ -446,7 +461,7 @@ export async function getUser(headers: api.AuthRequired, id: string): Promise<ap
         data,
       };
     case 403:
-      if (!validation.validate_string(data)) {
+      if (!validators.validate_string(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
       return {
@@ -458,8 +473,8 @@ export async function getUser(headers: api.AuthRequired, id: string): Promise<ap
   }
 }
 
-export async function deleteUser(headers: api.AuthRequired, id: string): Promise<api.DeleteUser_Response> {
-  if (!validation.validate_AuthRequired(headers)) {
+export async function deleteUser(headers: types.AuthRequired, id: string): Promise<types.DeleteUser_Response> {
+  if (!validators.validate_AuthRequired(headers)) {
     throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
   }
   const url = \`\${URL}/users/\${id}\`;
@@ -493,7 +508,7 @@ export async function deleteUser(headers: api.AuthRequired, id: string): Promise
         kind: "success",
       };
     case 403:
-      if (!validation.validate_string(data)) {
+      if (!validators.validate_string(data)) {
         throw new Error(\`Invalid response: \${JSON.stringify(data, null, 2)}\`);
       }
       return {
@@ -527,8 +542,8 @@ test("generator with server", () => {
         content: `import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
-import * as api from "./api";
-import * as validation from "./validation";
+import * as types from "./api/types";
+import * as validators from "./api/validators";
 
 // start-generated-section endpointImports
 import { createUser } from "./endpoints/createUser";
@@ -554,21 +569,21 @@ app.use(
 // start-generated-section httpHooks
 app.post("/users", async (req, res, next) => {
   try {
-    const request: api.CreateUserRequest = req.body;
-    if (!validation.validate_CreateUserRequest(request)) {
+    const request: types.CreateUserRequest = req.body;
+    if (!validators.validate_CreateUserRequest(request)) {
       throw new Error(\`Invalid request: \${JSON.stringify(request, null, 2)}\`);
     }
-    const response: api.CreateUser_Response = await createUser(request);
+    const response: types.CreateUser_Response = await createUser(request);
     switch (response.kind) {
       case \"success\":
-        if (!validation.validate_CreateUserResponseSuccess(response.data)) {
+        if (!validators.validate_CreateUserResponseSuccess(response.data)) {
           throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
         }
         res.status(200);
         res.json(response.data);
         break;
       case \"failure\":
-        if (!validation.validate_string(response.data)) {
+        if (!validators.validate_string(response.data)) {
           throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
         }
         res.status(400);
@@ -584,23 +599,23 @@ app.post("/users", async (req, res, next) => {
 
 app.get("/users", async (req, res, next) => {
   try {
-    const headers: api.AuthOptional = {
+    const headers: types.AuthOptional = {
       Authorization: req.header("Authorization"),
     };
-    if (!validation.validate_AuthOptional(headers)) {
+    if (!validators.validate_AuthOptional(headers)) {
       throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
     }
-    const response: api.ListUsers_Response = await listUsers(headers);
+    const response: types.ListUsers_Response = await listUsers(headers);
     switch (response.kind) {
       case \"success\":
-        if (!validation.validate_ListUsersResponse(response.data)) {
+        if (!validators.validate_ListUsersResponse(response.data)) {
           throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
         }
         res.status(200);
         res.json(response.data);
         break;
       case \"failure\":
-        if (!validation.validate_string(response.data)) {
+        if (!validators.validate_string(response.data)) {
           throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
         }
         res.status(403);
@@ -616,24 +631,24 @@ app.get("/users", async (req, res, next) => {
 
 app.get("/users/:id", async (req, res, next) => {
   try {
-    const headers: api.AuthRequired = {
+    const headers: types.AuthRequired = {
       Authorization: req.header("Authorization")!,
     };
-    if (!validation.validate_AuthRequired(headers)) {
+    if (!validators.validate_AuthRequired(headers)) {
       throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
     }
     const id = req.params["id"];
-    const response: api.GetUser_Response = await getUser(headers, id);
+    const response: types.GetUser_Response = await getUser(headers, id);
     switch (response.kind) {
       case \"success\":
-        if (!validation.validate_User(response.data)) {
+        if (!validators.validate_User(response.data)) {
           throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
         }
         res.status(200);
         res.json(response.data);
         break;
       case \"failure\":
-        if (!validation.validate_string(response.data)) {
+        if (!validators.validate_string(response.data)) {
           throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
         }
         res.status(403);
@@ -649,21 +664,21 @@ app.get("/users/:id", async (req, res, next) => {
 
 app.delete("/users/:id", async (req, res, next) => {
   try {
-    const headers: api.AuthRequired = {
+    const headers: types.AuthRequired = {
       Authorization: req.header("Authorization")!,
     };
-    if (!validation.validate_AuthRequired(headers)) {
+    if (!validators.validate_AuthRequired(headers)) {
       throw new Error(\`Invalid headers: \${JSON.stringify(headers, null, 2)}\`);
     }
     const id = req.params["id"];
-    const response: api.DeleteUser_Response = await deleteUser(headers, id);
+    const response: types.DeleteUser_Response = await deleteUser(headers, id);
     switch (response.kind) {
       case \"success\":
         res.status(200);
         res.end();
         break;
       case \"failure\":
-        if (!validation.validate_string(response.data)) {
+        if (!validators.validate_string(response.data)) {
           throw new Error(\`Invalid response: \${JSON.stringify(response, null, 2)}\`);
         }
         res.status(403);

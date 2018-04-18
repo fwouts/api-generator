@@ -53,11 +53,16 @@ type a = string;
   expect(input(outputDestination)).toMatchObject({
     kind: "directory",
     children: {
-      "api.ts": {
-        kind: "file",
-      },
-      "validation.ts": {
-        kind: "file",
+      api: {
+        kind: "directory",
+        children: {
+          "types.ts": {
+            kind: "file",
+          },
+          "validators.ts": {
+            kind: "file",
+          },
+        },
       },
     },
   });
@@ -82,11 +87,16 @@ type a = string;
   expect(input(outputDestination)).toMatchObject({
     kind: "directory",
     children: {
-      "api.ts": {
-        kind: "file",
-      },
-      "validation.ts": {
-        kind: "file",
+      "api": {
+        kind: "directory",
+        children: {
+          "types.ts": {
+            kind: "file",
+          },
+          "validators.ts": {
+            kind: "file",
+          },
+        },
       },
       "client.ts": {
         kind: "file",
@@ -114,11 +124,16 @@ type a = string;
   expect(input(outputDestination)).toMatchObject({
     kind: "directory",
     children: {
-      "api.ts": {
-        kind: "file",
-      },
-      "validation.ts": {
-        kind: "file",
+      "api": {
+        kind: "directory",
+        children: {
+          "types.ts": {
+            kind: "file",
+          },
+          "validators.ts": {
+            kind: "file",
+          },
+        },
       },
       "server.ts": {
         kind: "file",

@@ -31,8 +31,8 @@ export function generateTypeScript(
       kind: "overridable-file",
       markerFormat: "// %marker%",
       template: `import axios, { AxiosError } from "axios";
-import * as api from "./api";
-import * as validation from "./validation";
+import * as types from "./api/types";
+import * as validators from "./api/validators";
 
 const URL = "${options.client.baseUrl}";
 
@@ -65,8 +65,8 @@ const URL = "${options.client.baseUrl}";
       template: `import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
-import * as api from "./api";
-import * as validation from "./validation";
+import * as types from "./api/types";
+import * as validators from "./api/validators";
 
 %endpointImports%
 
@@ -128,20 +128,30 @@ app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
     appendType(apiBuilder, type, name, true);
     apiFirstBlock = false;
   }
-  directory.children["api.ts"] = {
+  directory.children.api = {
+    kind: "directory",
+    children: {},
+  };
+  directory.children.api.children["types.ts"] = {
     kind: "file",
     content: apiBuilder.build(),
   };
-  const validationBuilder = new TextBuilder();
+  const validatorsBuilder = new TextBuilder();
+  validatorsBuilder.append('import * as types from "./types";');
   for (const [name, type] of Object.entries(typeDefinitions)) {
-    appendValidateMethods(validationBuilder, type, name);
+    appendValidateMethods(validatorsBuilder, type, name, true);
   }
   for (const primitiveType of PRIMITIVE_TYPES) {
-    appendValidateMethods(validationBuilder, primitiveType, primitiveType);
+    appendValidateMethods(
+      validatorsBuilder,
+      primitiveType,
+      primitiveType,
+      true,
+    );
   }
-  directory.children["validation.ts"] = {
+  directory.children.api.children["validators.ts"] = {
     kind: "file",
-    content: validationBuilder.build(),
+    content: validatorsBuilder.build(),
   };
   return directory;
 }
@@ -149,7 +159,7 @@ app.listen(PORT, () => console.log(\`Listening on port \${PORT}\`));
 function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
   const endpointArguments: string[] = [];
   if (endpoint.headers) {
-    endpointArguments.push(`headers: api.${endpoint.headers}`);
+    endpointArguments.push(`headers: types.${endpoint.headers}`);
   }
   for (const subpath of endpoint.route) {
     if (subpath.dynamic) {
@@ -158,18 +168,18 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
   }
   if (endpoint.input !== "void") {
     endpointArguments.push(
-      `request: ${externalOrPrimitive("api", endpoint.input)}`,
+      `request: ${externalOrPrimitive("types", endpoint.input)}`,
     );
   }
   clientBuilder.append(
     `export async function ${endpoint.name}(${endpointArguments.join(
       ", ",
-    )}): Promise<api.${endpointResponseName(endpoint)}> {`,
+    )}): Promise<types.${endpointResponseName(endpoint)}> {`,
   );
   clientBuilder.indented(() => {
     if (endpoint.headers) {
       clientBuilder.append(
-        `if (!validation.validate_${endpoint.headers}(headers)) {`,
+        `if (!validators.validate_${endpoint.headers}(headers)) {`,
       );
       clientBuilder.indented(() => {
         clientBuilder.append(
@@ -180,7 +190,7 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
     }
     if (endpoint.input !== "void") {
       clientBuilder.append(
-        `if (!validation.validate_${endpoint.input}(request)) {`,
+        `if (!validators.validate_${endpoint.input}(request)) {`,
       );
       clientBuilder.indented(() => {
         clientBuilder.append(
@@ -252,7 +262,7 @@ function appendClientEndpoint(clientBuilder: TextBuilder, endpoint: Endpoint) {
             clientBuilder.append("};");
           } else {
             clientBuilder.append(
-              `if (!validation.validate_${endpointOutput.type}(data)) {`,
+              `if (!validators.validate_${endpointOutput.type}(data)) {`,
             );
             clientBuilder.indented(() => {
               clientBuilder.append(
@@ -304,7 +314,7 @@ function appendServerEndpoint(
       const args: string[] = [];
       if (endpoint.headers) {
         args.push("headers");
-        serverBuilder.append(`const headers: api.${endpoint.headers} = {`);
+        serverBuilder.append(`const headers: types.${endpoint.headers} = {`);
         serverBuilder.indented(() => {
           const headersType = typeDefinitions[endpoint.headers!];
           if (
@@ -337,7 +347,7 @@ function appendServerEndpoint(
         });
         serverBuilder.append(`};\n`);
         serverBuilder.append(
-          `if (!validation.validate_${endpoint.headers}(headers)) {`,
+          `if (!validators.validate_${endpoint.headers}(headers)) {`,
         );
         serverBuilder.indented(() => {
           serverBuilder.append(
@@ -358,12 +368,12 @@ function appendServerEndpoint(
         args.push("request");
         serverBuilder.append(
           `const request: ${externalOrPrimitive(
-            "api",
+            "types",
             endpoint.input,
           )} = req.body;\n`,
         );
         serverBuilder.append(
-          `if (!validation.validate_${endpoint.input}(request)) {`,
+          `if (!validators.validate_${endpoint.input}(request)) {`,
         );
         serverBuilder.indented(() => {
           serverBuilder.append(
@@ -373,7 +383,7 @@ function appendServerEndpoint(
         serverBuilder.append("}\n");
       }
       serverBuilder.append(
-        `const response: api.${endpointResponseName(endpoint)} = await ${
+        `const response: types.${endpointResponseName(endpoint)} = await ${
           endpoint.name
         }(${args.join(", ")});\n`,
       );
@@ -384,7 +394,7 @@ function appendServerEndpoint(
           serverBuilder.indented(() => {
             if (endpointOutput.type !== "void") {
               serverBuilder.append(
-                `if (!validation.validate_${
+                `if (!validators.validate_${
                   endpointOutput.type
                 }(response.data)) {`,
               );
@@ -538,121 +548,137 @@ function appendType(
 }
 
 function appendValidateMethods(
-  validationBuilder: TextBuilder,
+  validatorsBuilder: TextBuilder,
   type: Type,
   name: string,
+  declaredType: boolean,
 ) {
   if (typeof type === "string") {
     // TypeName.
     if (type === "void" || PRIMITIVE_TYPES.has(type)) {
-      appendValidateMethod(validationBuilder, name, () => {
+      appendValidateMethod(validatorsBuilder, name, declaredType, () => {
         if (type === "void") {
-          validationBuilder.append("return value === undefined;");
+          validatorsBuilder.append("return value === undefined;");
         } else if (type === "bool") {
-          validationBuilder.append("return typeof value === 'boolean';");
+          validatorsBuilder.append("return typeof value === 'boolean';");
         } else if (type === "int" || type === "long") {
-          validationBuilder.append(
+          validatorsBuilder.append(
             "return typeof value === 'number' && Number.isInteger(value);",
           );
         } else if (type === "float" || type === "double") {
-          validationBuilder.append("return typeof value === 'number';");
+          validatorsBuilder.append("return typeof value === 'number';");
         } else if (type === "string") {
-          validationBuilder.append("return typeof value === 'string';");
+          validatorsBuilder.append("return typeof value === 'string';");
         } else if (type === "null") {
-          validationBuilder.append("return value === null;");
+          validatorsBuilder.append("return value === null;");
         } else {
           throw new Error(`Unknown primary type: ${type}.`);
         }
       });
     } else {
-      appendValidateMethod(validationBuilder, name, () => {
-        validationBuilder.append(`return validate_${type}(value);`);
+      appendValidateMethod(validatorsBuilder, name, declaredType, () => {
+        validatorsBuilder.append(`return validate_${type}(value);`);
       });
     }
   } else if (type.kind === "array") {
-    appendValidateMethod(validationBuilder, name, () => {
-      validationBuilder.append("if (!(value instanceof Array)) {");
-      validationBuilder.indented(() =>
-        validationBuilder.append("return false;"),
+    appendValidateMethod(validatorsBuilder, name, declaredType, () => {
+      validatorsBuilder.append("if (!(value instanceof Array)) {");
+      validatorsBuilder.indented(() =>
+        validatorsBuilder.append("return false;"),
       );
-      validationBuilder.append("}\n");
-      validationBuilder.append("for (let item of value) {");
-      validationBuilder.indented(() => {
-        validationBuilder.append(`if (!validate_${name}_item(item)) {`);
-        validationBuilder.indented(() =>
-          validationBuilder.append("return false;"),
+      validatorsBuilder.append("}\n");
+      validatorsBuilder.append("for (let item of value) {");
+      validatorsBuilder.indented(() => {
+        validatorsBuilder.append(`if (!validate_${name}_item(item)) {`);
+        validatorsBuilder.indented(() =>
+          validatorsBuilder.append("return false;"),
         );
-        validationBuilder.append("}\n");
+        validatorsBuilder.append("}\n");
       });
-      validationBuilder.append("}\n");
-      validationBuilder.append("return true;\n");
+      validatorsBuilder.append("}\n");
+      validatorsBuilder.append("return true;\n");
     });
-    appendValidateMethods(validationBuilder, type.items, `${name}_item`);
+    appendValidateMethods(validatorsBuilder, type.items, `${name}_item`, false);
   } else if (type.kind === "union") {
-    appendValidateMethod(validationBuilder, name, () => {
+    appendValidateMethod(validatorsBuilder, name, declaredType, () => {
       for (let i = 0; i < type.items.length; i++) {
-        validationBuilder.append(`if (validate_${name}_${i}(value)) {`);
-        validationBuilder.indented(() =>
-          validationBuilder.append("return true;"),
+        validatorsBuilder.append(`if (validate_${name}_${i}(value)) {`);
+        validatorsBuilder.indented(() =>
+          validatorsBuilder.append("return true;"),
         );
-        validationBuilder.append("}\n");
+        validatorsBuilder.append("}\n");
       }
-      validationBuilder.append("return false;");
+      validatorsBuilder.append("return false;");
     });
     for (let i = 0; i < type.items.length; i++) {
-      appendValidateMethods(validationBuilder, type.items[i], `${name}_${i}`);
+      appendValidateMethods(
+        validatorsBuilder,
+        type.items[i],
+        `${name}_${i}`,
+        false,
+      );
     }
   } else if (type.kind === "struct") {
-    appendValidateMethod(validationBuilder, name, () => {
-      validationBuilder.append("if (!(value instanceof Object)) {");
-      validationBuilder.indented(() =>
-        validationBuilder.append("return false;"),
+    appendValidateMethod(validatorsBuilder, name, declaredType, () => {
+      validatorsBuilder.append("if (!(value instanceof Object)) {");
+      validatorsBuilder.indented(() =>
+        validatorsBuilder.append("return false;"),
       );
-      validationBuilder.append("}\n");
+      validatorsBuilder.append("}\n");
       for (const fieldName of Object.keys(type.items)) {
-        validationBuilder.append(
+        validatorsBuilder.append(
           `if (!validate_${name}_${fieldName}(value.${fieldName})) {`,
         );
-        validationBuilder.indented(() =>
-          validationBuilder.append("return false;"),
+        validatorsBuilder.indented(() =>
+          validatorsBuilder.append("return false;"),
         );
-        validationBuilder.append("}\n");
+        validatorsBuilder.append("}\n");
       }
-      validationBuilder.append("return true;\n");
+      validatorsBuilder.append("return true;\n");
     });
     for (const [fieldName, fieldType] of Object.entries(type.items)) {
       appendValidateMethods(
-        validationBuilder,
+        validatorsBuilder,
         fieldType,
         `${name}_${fieldName}`,
+        false,
       );
     }
   } else if (type.kind === "symbol") {
-    appendValidateMethod(validationBuilder, name, () => {
-      validationBuilder.append(`return value === '${type.value}';`);
+    appendValidateMethod(validatorsBuilder, name, declaredType, () => {
+      validatorsBuilder.append(`return value === '${type.value}';`);
     });
   } else if (type.kind === "optional") {
-    appendValidateMethod(validationBuilder, name, () => {
-      validationBuilder.append(
+    appendValidateMethod(validatorsBuilder, name, declaredType, () => {
+      validatorsBuilder.append(
         `return value === undefined || validate_${name}_present(value);`,
       );
     });
-    appendValidateMethods(validationBuilder, type.type, `${name}_present`);
+    appendValidateMethods(
+      validatorsBuilder,
+      type.type,
+      `${name}_present`,
+      false,
+    );
   } else {
     throw new Error();
   }
 }
 
 function appendValidateMethod(
-  validationBuilder: TextBuilder,
+  validatorsBuilder: TextBuilder,
   name: string,
+  declaredType: boolean,
   body: () => void,
 ) {
-  validationBuilder.append(
-    `export function validate_${name}(value: any): boolean {`,
+  const returnType = declaredType
+    ? `value is ${externalOrPrimitive("types", name)}`
+    : "boolean";
+  validatorsBuilder.append(
+    `\n\nexport function validate_${name}(value: any): ${returnType} {`,
   );
-  validationBuilder.indented(body);
-  validationBuilder.append("}\n\n");
+  validatorsBuilder.indented(body);
+  validatorsBuilder.append("}");
 }
 
 function externalOrPrimitive(externalNamespace: string, typeName: string) {
