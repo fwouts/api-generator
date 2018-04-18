@@ -18,39 +18,36 @@ yarn global add @zenclabs/api
 
 Here is an example of a REST API that exposes two endpoints:
 
-### example.api
+### users.api
 ```
-// Endpoint to login users.
-endpoint loginUser: POST /users/login LoginUserRequest
--> success 200 LoginUserResponse
--> failure 403 string
+endpoint createUser: POST /users CreateUserRequest
+-> success 200 CreateUserResponse
+-> failure 400 string
 
-type LoginUserRequest = {
-  email: string
+type CreateUserRequest = {
+  name: string
   password: string
 }
 
-type LoginUserResponse = {
-  status: @error
-  notice: string
-} | {
-  status: @success
-  jwtToken: string
+type CreateUserResponse = {
+  id: string
 }
 
-// Endpoint to create a post.
 @headers(AuthRequired)
-endpoint postMessage: POST /messages PostMessageRequest
--> success 200 PostMessageResponse
--> failure 400 string
+endpoint listUsers: GET /users void
+-> success 200 ListUsersResponse
+-> failure 403 string
 
-type PostMessageRequest = {
-  text: string
-}
+type ListUsersResponse = User[]
 
-type PostMessageResponse = {
-  status: @success | @error
-  notice: string
+@headers(AuthRequired)
+endpoint getUser: GET /users/:id void
+-> success 200 User
+-> failure 403 string
+-> notfound 404 void
+
+type User = {
+  name: string
 }
 
 type AuthRequired = {
@@ -61,14 +58,14 @@ type AuthRequired = {
 We can then generate a TypeScript client and/or server with:
 ```
 # Generate client code
-apidef generate typescript example.api src --client https://api.example.com
+apidef generate typescript users.api src --client https://api.example.com
 # Output:
 # - src/api/types.ts
 # - src/api/validators.ts
 # - src/client.ts
 
 # Generate server code
-apidef generate typescript example.api src --server
+apidef generate typescript users.api src --server
 # Output:
 # - src/api/types.ts
 # - src/api/validators.ts
@@ -76,6 +73,8 @@ apidef generate typescript example.api src --server
 # - src/endpoints/loginUser.ts
 # - src/endpoints/postMessage.ts
 ```
+
+To see the generated code, please check out the [`example`](example/) directory.
 
 ## Type definitions
 
