@@ -86,7 +86,7 @@ symbol
     ;
 
 name
-    : NAME | 'endpoint' | 'type'
+    : NAME | 'endpoint' | 'type' | method
     ;
 
 separator

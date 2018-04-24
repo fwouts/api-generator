@@ -8,14 +8,14 @@ type a = b;
 type b =
   `),
   ).toThrow(
-    "Syntax error (4:2): extraneous input '<EOF>' expecting {'endpoint', 'type', 'Array<', 'Map<', '{', '@', NAME, LINEBREAK}.",
+    "Syntax error (4:2): extraneous input '<EOF>' expecting {'endpoint', 'GET', 'POST', 'PUT', 'DELETE', 'type', 'Array<', 'Map<', '{', '@', NAME, LINEBREAK}.",
   );
   expect(() =>
     parse(`
 endpoint a : GET /path
   `),
   ).toThrow(
-    "Syntax error (2:22): missing {'endpoint', 'type', NAME} at '\\n'.",
+    "Syntax error (2:22): mismatched input '\\n' expecting {'endpoint', 'GET', 'POST', 'PUT', 'DELETE', 'type', NAME}.",
   );
 });
 
@@ -25,7 +25,7 @@ test("parser rejects invalid types", () => {
 type a = 123
   `),
   ).toThrow(
-    "Syntax error (2:9): extraneous input '123' expecting {'endpoint', 'type', 'Array<', 'Map<', '{', '@', NAME, LINEBREAK}.",
+    "Syntax error (2:9): extraneous input '123' expecting {'endpoint', 'GET', 'POST', 'PUT', 'DELETE', 'type', 'Array<', 'Map<', '{', '@', NAME, LINEBREAK}.",
   );
 });
 
