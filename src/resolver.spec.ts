@@ -140,7 +140,11 @@ type c = {
   unknown2?: z
 }
 type d = Array<z>
-type e = Array<z>
+type e = Map<z>
+type f = Map<Array<{
+  known: a
+  unknown: Map<Array<Array<Array<z>>>>
+}>>
 `),
     ),
   ).toEqual({
@@ -152,6 +156,7 @@ type e = Array<z>
       "Type c.unknown2 refers to unknown type z.",
       "Type d refers to unknown type z.",
       "Type e refers to unknown type z.",
+      "Type f.unknown refers to unknown type z.",
     ],
   });
   expect(

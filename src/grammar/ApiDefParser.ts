@@ -757,7 +757,7 @@ export class ApiDefParser extends Parser {
 				this.state = 180;
 				this.match(ApiDefParser.T__15);
 				this.state = 181;
-				this.typename();
+				this.type(0);
 				this.state = 182;
 				this.match(ApiDefParser.T__16);
 				}
@@ -790,7 +790,7 @@ export class ApiDefParser extends Parser {
 			this.state = 186;
 			this.match(ApiDefParser.T__17);
 			this.state = 187;
-			this.typename();
+			this.type(0);
 			this.state = 188;
 			this.match(ApiDefParser.T__16);
 			}
@@ -1248,9 +1248,9 @@ export class ApiDefParser extends Parser {
 		"\xB2\x03\x02\x02\x02\xB0\xAE\x03\x02\x02\x02\xB0\xB1\x03\x02\x02\x02\xB1"+
 		"\x15\x03\x02\x02\x02\xB2\xB0\x03\x02\x02\x02\xB3\xB4\x05$\x13\x02\xB4"+
 		"\xB5\x07\x11\x02\x02\xB5\xBB\x03\x02\x02\x02\xB6\xB7\x07\x12\x02\x02\xB7"+
-		"\xB8\x05$\x13\x02\xB8\xB9\x07\x13\x02\x02\xB9\xBB\x03\x02\x02\x02\xBA"+
+		"\xB8\x05\x14\v\x02\xB8\xB9\x07\x13\x02\x02\xB9\xBB\x03\x02\x02\x02\xBA"+
 		"\xB3\x03\x02\x02\x02\xBA\xB6\x03\x02\x02\x02\xBB\x17\x03\x02\x02\x02\xBC"+
-		"\xBD\x07\x14\x02\x02\xBD\xBE\x05$\x13\x02\xBE\xBF\x07\x13\x02\x02\xBF"+
+		"\xBD\x07\x14\x02\x02\xBD\xBE\x05\x14\v\x02\xBE\xBF\x07\x13\x02\x02\xBF"+
 		"\x19\x03\x02\x02\x02\xC0\xC4\x07\x15\x02\x02\xC1\xC3\x07\x1C\x02\x02\xC2"+
 		"\xC1\x03\x02\x02\x02\xC3\xC6\x03\x02\x02\x02\xC4\xC2\x03\x02\x02\x02\xC4"+
 		"\xC5\x03\x02\x02\x02\xC5\xCC\x03\x02\x02\x02\xC6\xC4\x03\x02\x02\x02\xC7"+
@@ -1538,8 +1538,11 @@ export class TypeContext extends ParserRuleContext {
 
 
 export class ArrayContext extends ParserRuleContext {
-	public typename(): TypenameContext {
-		return this.getRuleContext(0, TypenameContext);
+	public typename(): TypenameContext | undefined {
+		return this.tryGetRuleContext(0, TypenameContext);
+	}
+	public type(): TypeContext | undefined {
+		return this.tryGetRuleContext(0, TypeContext);
 	}
 	constructor(parent: ParserRuleContext, invokingState: number);
 	constructor(parent: ParserRuleContext, invokingState: number) {
@@ -1551,8 +1554,8 @@ export class ArrayContext extends ParserRuleContext {
 
 
 export class MapContext extends ParserRuleContext {
-	public typename(): TypenameContext {
-		return this.getRuleContext(0, TypenameContext);
+	public type(): TypeContext {
+		return this.getRuleContext(0, TypeContext);
 	}
 	constructor(parent: ParserRuleContext, invokingState: number);
 	constructor(parent: ParserRuleContext, invokingState: number) {

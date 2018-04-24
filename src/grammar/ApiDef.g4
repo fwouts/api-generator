@@ -50,11 +50,11 @@ type
 
 array
     : typename '[]'
-    | 'Array<' typename '>'
+    | 'Array<' type '>'
     ;
 
 map
-    : 'Map<' typename '>'
+    : 'Map<' type '>'
     ;
 
 struct

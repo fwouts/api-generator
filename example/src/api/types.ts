@@ -11,7 +11,7 @@ export type ListUsersResponse = User[];
 
 export interface User {
   name: string;
-  properties: { [key: string]: string };
+  properties: { [key: string]: string[] };
 }
 
 export interface AuthRequired {

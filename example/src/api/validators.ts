@@ -84,6 +84,18 @@ export function validate_User_properties(value: any): boolean {
 }
 
 export function validate_User_properties_item(value: any): boolean {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+  for (const item of value) {
+    if (!validate_User_properties_item_item(item)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function validate_User_properties_item_item(value: any): boolean {
   return typeof value === "string";
 }
 

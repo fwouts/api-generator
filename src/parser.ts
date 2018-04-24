@@ -159,16 +159,25 @@ function read_type(type: TypeContext): Type {
 }
 
 function read_array(array: ArrayContext): ArrayType {
-  return {
-    kind: "array",
-    items: read_typename(array.typename()),
-  };
+  if (array.typename()) {
+    return {
+      kind: "array",
+      items: read_typename(array.typename()!),
+    };
+  } else if (array.type()) {
+    return {
+      kind: "array",
+      items: read_type(array.type()!),
+    };
+  } else {
+    throw new Error();
+  }
 }
 
 function read_map(map: MapContext): MapType {
   return {
     kind: "map",
-    items: read_typename(map.typename()),
+    items: read_type(map.type()),
   };
 }
 
