@@ -4,6 +4,7 @@ import {
   ArrayType,
   Endpoint,
   EndpointOutput,
+  MapType,
   Method,
   RouteSubpath,
   StructType,
@@ -19,6 +20,7 @@ import {
   EndpointContext,
   EndpointoutputContext,
   HeadersContext,
+  MapContext,
   MethodContext,
   RouteContext,
   StructContext,
@@ -138,6 +140,8 @@ function read_typedef(typedef: TypedefContext): TypeDef {
 function read_type(type: TypeContext): Type {
   if (type.array()) {
     return read_array(type.array()!);
+  } else if (type.map()) {
+    return read_map(type.map()!);
   } else if (type.type().length) {
     return {
       kind: "union",
@@ -158,6 +162,13 @@ function read_array(array: ArrayContext): ArrayType {
   return {
     kind: "array",
     items: read_typename(array.typename()),
+  };
+}
+
+function read_map(map: MapContext): MapType {
+  return {
+    kind: "map",
+    items: read_typename(map.typename()),
   };
 }
 

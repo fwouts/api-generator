@@ -498,6 +498,16 @@ function appendType(
     if (exported) {
       apiBuilder.append(";\n");
     }
+  } else if (type.kind === "map") {
+    if (exported) {
+      apiBuilder.append(`export type ${name} = `);
+    }
+    apiBuilder.append("{ [key: string]: ");
+    appendType(apiBuilder, type.items, `${name}_item`);
+    apiBuilder.append(" }");
+    if (exported) {
+      apiBuilder.append(";\n");
+    }
   } else if (type.kind === "union") {
     if (exported) {
       apiBuilder.append(`export type ${name} = `);
@@ -590,6 +600,32 @@ function appendValidateMethods(
       validatorsBuilder.append("for (let item of value) {");
       validatorsBuilder.indented(() => {
         validatorsBuilder.append(`if (!validate_${name}_item(item)) {`);
+        validatorsBuilder.indented(() =>
+          validatorsBuilder.append("return false;"),
+        );
+        validatorsBuilder.append("}\n");
+      });
+      validatorsBuilder.append("}\n");
+      validatorsBuilder.append("return true;\n");
+    });
+    appendValidateMethods(validatorsBuilder, type.items, `${name}_item`, false);
+  } else if (type.kind === "map") {
+    appendValidateMethod(validatorsBuilder, name, declaredType, () => {
+      validatorsBuilder.append(
+        "if (value === null || typeof value !== 'object' || Array.isArray(value)) {",
+      );
+      validatorsBuilder.indented(() =>
+        validatorsBuilder.append("return false;"),
+      );
+      validatorsBuilder.append("}\n");
+      validatorsBuilder.append("for (let key of Object.keys(value)) {");
+      validatorsBuilder.indented(() => {
+        validatorsBuilder.append(`if (!validate_string(key)) {`);
+        validatorsBuilder.indented(() =>
+          validatorsBuilder.append("return false;"),
+        );
+        validatorsBuilder.append("}\n");
+        validatorsBuilder.append(`if (!validate_${name}_item(value[key])) {`);
         validatorsBuilder.indented(() =>
           validatorsBuilder.append("return false;"),
         );

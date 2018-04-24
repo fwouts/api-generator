@@ -41,6 +41,7 @@ typedef
 
 type
     : array LINEBREAK*
+    | map LINEBREAK *
     | type '|' LINEBREAK* type
     | struct LINEBREAK*
     | symbol LINEBREAK*
@@ -49,6 +50,11 @@ type
 
 array
     : typename '[]'
+    | 'Array<' typename '>'
+    ;
+
+map
+    : 'Map<' typename '>'
     ;
 
 struct

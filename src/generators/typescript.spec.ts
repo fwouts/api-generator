@@ -54,6 +54,7 @@ endpoint getUser: GET /users/:id void
 
 type User = {
   name: string
+  properties: Map<string>
 }
 
 @headers(AuthRequired)
@@ -104,6 +105,7 @@ export type ListUsersResponse = User[];
 
 export interface User {
   name: string;
+  properties: { [key: string]: string };
 }
 
 export interface AuthOptional {
@@ -271,6 +273,35 @@ let invalidResponse2 = {
   },
 };
 
+let validUser1 = {
+  name: "user",
+  properties: {},
+};
+
+let validUser2 = {
+  name: "user",
+  properties: {
+    email: "hello@gmail.com",
+  },
+};
+
+let invalidUser1 = {
+  name: "user",
+  properties: ""
+};
+
+let invalidUser2 = {
+  name: "user",
+  properties: []
+};
+
+let invalidUser3 = {
+  name: "user",
+  properties: {
+    email: 123,
+  },
+};
+
 expect(validators.validate_CreateUserRequest(validRequest1)).toBe(true);
 expect(validators.validate_CreateUserRequest(validRequest2)).toBe(true);
 expect(validators.validate_CreateUserRequest(invalidRequest1)).toBe(false);
@@ -279,6 +310,11 @@ expect(validators.validate_CreateUser_Response(validResponse1)).toBe(true);
 expect(validators.validate_CreateUser_Response(validResponse2)).toBe(true);
 expect(validators.validate_CreateUser_Response(invalidResponse1)).toBe(false);
 expect(validators.validate_CreateUser_Response(invalidResponse2)).toBe(false);
+expect(validators.validate_User(validUser1)).toBe(true);
+expect(validators.validate_User(validUser2)).toBe(true);
+expect(validators.validate_User(invalidUser1)).toBe(false);
+expect(validators.validate_User(invalidUser2)).toBe(false);
+expect(validators.validate_User(invalidUser3)).toBe(false);
 `,
   });
   expect(errors).toEqual([]);

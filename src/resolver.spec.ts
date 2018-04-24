@@ -132,12 +132,27 @@ test("resolver fails with unknown type reference", () => {
   expect(
     resolve(
       parse(`
-type a = b
+type a = z
+type b = a | z
+type c = {
+  known: a
+  unknown: z
+  unknown2?: z
+}
+type d = Array<z>
+type e = Array<z>
 `),
     ),
   ).toEqual({
     kind: "failure",
-    errors: ["Type a refers to unknown type b."],
+    errors: [
+      "Type a refers to unknown type z.",
+      "Type b refers to unknown type z.",
+      "Type c.unknown refers to unknown type z.",
+      "Type c.unknown2 refers to unknown type z.",
+      "Type d refers to unknown type z.",
+      "Type e refers to unknown type z.",
+    ],
   });
   expect(
     resolve(

@@ -154,6 +154,8 @@ export function resolve(api: Api): ResolveResult {
       }
     } else if (type.kind === "array") {
       checkType(name, type.items, errors);
+    } else if (type.kind === "map") {
+      checkType(name, type.items, errors);
     } else if (type.kind === "union") {
       for (const possibleType of type.items) {
         checkType(name, possibleType, errors);

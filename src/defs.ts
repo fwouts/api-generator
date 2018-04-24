@@ -34,6 +34,7 @@ export interface TypeDef {
 
 export type Type =
   | ArrayType
+  | MapType
   | UnionType
   | StructType
   | OptionalType
@@ -42,6 +43,11 @@ export type Type =
 
 export interface ArrayType {
   kind: "array";
+  items: Type;
+}
+
+export interface MapType {
+  kind: "map";
   items: Type;
 }
 

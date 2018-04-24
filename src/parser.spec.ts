@@ -8,7 +8,7 @@ type a = b;
 type b =
   `),
   ).toThrow(
-    "Syntax error (4:2): extraneous input '<EOF>' expecting {'endpoint', 'type', '{', '@', NAME, LINEBREAK}.",
+    "Syntax error (4:2): extraneous input '<EOF>' expecting {'endpoint', 'type', 'Array<', 'Map<', '{', '@', NAME, LINEBREAK}.",
   );
   expect(() =>
     parse(`
@@ -25,7 +25,7 @@ test("parser rejects invalid types", () => {
 type a = 123
   `),
   ).toThrow(
-    "Syntax error (2:9): extraneous input '123' expecting {'endpoint', 'type', '{', '@', NAME, LINEBREAK}.",
+    "Syntax error (2:9): extraneous input '123' expecting {'endpoint', 'type', 'Array<', 'Map<', '{', '@', NAME, LINEBREAK}.",
   );
 });
 
@@ -140,6 +140,7 @@ test("parser handles arrays", () => {
   expect(
     parse(`
 type a = string[];
+type b = Array<string>;
   `),
   ).toEqual({
     endpoints: [],
@@ -148,6 +149,32 @@ type a = string[];
         name: "a",
         type: {
           kind: "array",
+          items: "string",
+        },
+      },
+      {
+        name: "b",
+        type: {
+          kind: "array",
+          items: "string",
+        },
+      },
+    ],
+  });
+});
+
+test("parser handles maps", () => {
+  expect(
+    parse(`
+type a = Map<string>;
+  `),
+  ).toEqual({
+    endpoints: [],
+    typeDefs: [
+      {
+        name: "a",
+        type: {
+          kind: "map",
           items: "string",
         },
       },

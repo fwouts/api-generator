@@ -26,6 +26,7 @@ endpoint getUser: GET /users/:id void
 
 type User = {
   name: string
+  properties: Map<string>
 }
 
 type AuthRequired = {

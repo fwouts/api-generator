@@ -58,10 +58,32 @@ export function validate_User(value: any): value is types.User {
   if (!validate_User_name(value.name)) {
     return false;
   }
+  if (!validate_User_properties(value.properties)) {
+    return false;
+  }
   return true;
 }
 
 export function validate_User_name(value: any): boolean {
+  return typeof value === "string";
+}
+
+export function validate_User_properties(value: any): boolean {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  for (const key of Object.keys(value)) {
+    if (!validate_string(key)) {
+      return false;
+    }
+    if (!validate_User_properties_item(value[key])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function validate_User_properties_item(value: any): boolean {
   return typeof value === "string";
 }
 
