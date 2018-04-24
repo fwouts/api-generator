@@ -1,0 +1,64 @@
+endpoint describe: GET /describe void
+-> success 200 DescribeResponse
+-> failure 409 string
+
+type DescribeResponse = {
+  endpoints: Map<Endpoint>
+  types: Map<Type>
+}
+
+type Endpoint = {
+  name: string
+  method: Method
+  route: RouteSubpath[]
+  headers?: TypeName
+  input: TypeName
+  outputs: Output[]
+}
+
+type Method = @GET | @POST | @PUT | @DELETE
+
+type RouteSubpath = {
+  name: string
+  dynamic: bool
+}
+
+type Output = {
+  name: string
+  statusCode: int
+  type: TypeName
+}
+
+type Type = ArrayType | MapType | UnionType | StructType | OptionalType | SymbolType | TypeName
+
+type ArrayType = {
+  kind: @array
+  items: Type
+}
+
+type MapType = {
+  kind: @map
+  items: Type
+}
+
+type UnionType = {
+  kind: @union
+  items: Array<Type>
+}
+
+type StructType = {
+  kind: @struct
+  items: Map<Type>
+}
+
+type OptionalType = {
+  kind: @optional
+  type: Type
+}
+
+type SymbolType = {
+  kind: @symbol
+  value: string
+}
+
+type TypeName = string
