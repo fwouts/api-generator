@@ -25,14 +25,7 @@ export interface Output {
   type: TypeName;
 }
 
-export type Type =
-  | ArrayType
-  | MapType
-  | UnionType
-  | StructType
-  | OptionalType
-  | SymbolType
-  | TypeName;
+export type Type = ArrayType | MapType | UnionType | StructType | OptionalType | SymbolType | TypeName;
 
 export interface ArrayType {
   kind: "array";
@@ -64,14 +57,14 @@ export interface SymbolType {
   value: string;
 }
 
-export type TypeName = string;
+export type TypeName = string | PrimitiveType;
 
-export type Describe_Response =
-  | {
-      kind: "success";
-      data: DescribeResponse;
-    }
-  | {
-      kind: "failure";
-      data: string;
-    };
+export type PrimitiveType = "bool" | "int" | "long" | "float" | "double" | "string" | "null";
+
+export type Describe_Response = {
+  kind: "success";
+  data: DescribeResponse;
+} | {
+  kind: "failure";
+  data: string;
+};

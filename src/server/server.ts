@@ -29,26 +29,20 @@ app.get("/describe", async (req, res, next) => {
     switch (response.kind) {
       case "success":
         if (!validators.validate_DescribeResponse(response.data)) {
-          throw new Error(
-            `Invalid response: ${JSON.stringify(response, null, 2)}`,
-          );
+          throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);
         }
         res.status(200);
         res.json(response.data);
         break;
       case "failure":
         if (!validators.validate_string(response.data)) {
-          throw new Error(
-            `Invalid response: ${JSON.stringify(response, null, 2)}`,
-          );
+          throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);
         }
         res.status(409);
         res.json(response.data);
         break;
       default:
-        throw new Error(
-          `Invalid response: ${JSON.stringify(response, null, 2)}`,
-        );
+        throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`);
     }
   } catch (err) {
     next(err);

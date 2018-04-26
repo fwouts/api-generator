@@ -416,7 +416,74 @@ export function validate_SymbolType_value(value: any): boolean {
 }
 
 export function validate_TypeName(value: any): value is types.TypeName {
+  if (validate_TypeName_0(value)) {
+    return true;
+  }
+  if (validate_TypeName_1(value)) {
+    return true;
+  }
+  return false;
+}
+
+export function validate_TypeName_0(value: any): boolean {
   return typeof value === "string";
+}
+
+export function validate_TypeName_1(value: any): boolean {
+  return validate_PrimitiveType(value);
+}
+
+export function validate_PrimitiveType(value: any): value is types.PrimitiveType {
+  if (validate_PrimitiveType_0(value)) {
+    return true;
+  }
+  if (validate_PrimitiveType_1(value)) {
+    return true;
+  }
+  if (validate_PrimitiveType_2(value)) {
+    return true;
+  }
+  if (validate_PrimitiveType_3(value)) {
+    return true;
+  }
+  if (validate_PrimitiveType_4(value)) {
+    return true;
+  }
+  if (validate_PrimitiveType_5(value)) {
+    return true;
+  }
+  if (validate_PrimitiveType_6(value)) {
+    return true;
+  }
+  return false;
+}
+
+export function validate_PrimitiveType_0(value: any): boolean {
+  return value === "bool";
+}
+
+export function validate_PrimitiveType_1(value: any): boolean {
+  return value === "int";
+}
+
+export function validate_PrimitiveType_2(value: any): boolean {
+  return value === "long";
+}
+
+export function validate_PrimitiveType_3(value: any): boolean {
+  return value === "float";
+}
+
+export function validate_PrimitiveType_4(value: any): boolean {
+  return value === "double";
+}
+
+export function validate_PrimitiveType_5(value: any): boolean {
+  return value === "string";
+}
+
+export function validate_PrimitiveType_6(value: any): boolean {
+  return value === "null";
 }
 
 export function validate_Describe_Response(value: any): value is types.Describe_Response {

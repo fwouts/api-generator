@@ -61,4 +61,13 @@ type SymbolType = {
   value: string
 }
 
-type TypeName = string
+type TypeName = string | PrimitiveType
+
+type PrimitiveType =
+  @bool
+| @int
+| @long
+| @float
+| @double
+| @string
+| @null
