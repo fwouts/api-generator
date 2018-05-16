@@ -3,8 +3,7 @@
   "scripts": {
     "build": "tsc",
     "server": "ts-node src/server.ts",
-    "client": "ts-node src/client.ts",
-    "generate": "ts-node ../src/cli.ts generate typescript users.api src -c https://api.test.com -s"
+    "client": "ts-node src/client.ts"
   },
   "dependencies": {
     "@types/axios": "^0.14.0",
