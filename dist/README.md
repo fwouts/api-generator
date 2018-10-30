@@ -1,3 +1,10 @@
+# Superseded by [@zenclabs/api, a more type-safe approach](https://github.com/zenclabs/api)
+
+TypeScript turned out to be a better choice for an API definition DSL with autocomplete and instant validation.
+
+-----
+
+
 # API generator
 
 An easy way to declare an API and generate both client-side and server-side code.
